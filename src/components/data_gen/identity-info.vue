@@ -2,7 +2,7 @@
     <el-card class="box-card">
         <template #header>
             <div class="card-header">
-                <span>生成假数据</span>
+                <span>身份信息</span>
                 <el-button style="float: right;" @click="gen">重新生成</el-button>
             </div>
         </template>

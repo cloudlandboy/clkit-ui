@@ -2,9 +2,10 @@ import { ref, shallowRef } from 'vue';
 import { defineStore } from 'pinia'
 import Home from '@/components/home.vue';
 import DateTime from '@/components/date-time.vue';
-import Lan from '@/components/os/lan.vue';
+import LanScan from '@/components/net/lan-sacn.vue';
+import MyNetInfo from '@/components/net/my-net-info.vue';
 import Process from '@/components/os/process.vue';
-import Faker from '@/components/data_gen/faker.vue';
+import IdentityInfo from '@/components/data_gen/identity-info.vue';
 import CrudCodeGen from '@/components/code/curd_gen/crud-code-gen.vue';
 import ReplaceRow from '@/components/text_process/replace_row/index.vue';
 import IntegrationManage from "@/components/integration-manage.vue";
@@ -33,49 +34,44 @@ export const useAppConfigStore = defineStore('appConfig', () => {
         maxIframeCache: 8,
         staticMenus: [
             {
-                path: idGen.getStringKey(), title: '工具配置', children: [
+                path: idGen.getStringKey(), title: '配置', children: [
                     { path: '/data-backup', title: '数据备份' },
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '代码相关', children: [
+                path: idGen.getStringKey(), title: '代码', children: [
                     { path: '/crud-code-gen', title: '增删改查生成' },
                     { path: '/json-utils', title: 'JSON工具' },
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '系统相关', children: [
-                    { path: '/lan', title: '局域网工具' },
-                    { path: '/process', title: '进程工具' },
+                path: idGen.getStringKey(), title: '网络', children: [
+                    { path: '/lan-scan', title: '局域网扫描' },
+                    { path: '/my-net-info', title: '本机网络信息' },
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '数据生成', children: [
-                    { path: '/faker', title: '个人资料' }
+                path: idGen.getStringKey(), title: '系统', children: [
+                    { path: '/process', title: '进程查杀' },
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '格式转换', children: [
-                    { path: '/format-now-time', title: '格式化当前时间' },
+                path: idGen.getStringKey(), title: '假数据', children: [
+                    { path: '/identity-info', title: '身份信息' }
                 ]
             }
-            ,
-            {
-                path: idGen.getStringKey(), title: '文本处理', children: [
-                    { path: '/replace-each-row', title: '替换每一行' }
-                ]
-            },
         ],
         staticRoutes: [
             { path: '/', view: Home, isComponent: true },
             { path: '/data-backup', view: DataBackup, isComponent: true },
             { path: '/format-now-time', view: DateTime, isComponent: true },
             { path: '/process', view: Process, isComponent: true },
-            { path: '/faker', view: Faker, isComponent: true },
+            { path: '/identity-info', view: IdentityInfo, isComponent: true },
             { path: '/crud-code-gen', view: CrudCodeGen, isComponent: true },
             { path: '/json-utils', view: JsonUtils, isComponent: true },
             { path: '/replace-each-row', view: ReplaceRow, isComponent: true },
-            { path: '/lan', view: Lan, isComponent: true },
+            { path: '/lan-scan', view: LanScan, isComponent: true },
+            { path: '/my-net-info', view: MyNetInfo, isComponent: true },
             { path: '/integration-manage', view: IntegrationManage, isComponent: true }
         ]
     }
@@ -84,7 +80,7 @@ export const useAppConfigStore = defineStore('appConfig', () => {
         path: idGen.getStringKey(), title: '集成', children: [{ path: '/integration-manage', title: '集成管理' }]
     }
 
-    const menuList = ref([].concat(config.staticMenus, integrationMenu));
+    const menuList = ref([].concat(config.staticMenus));
     const routerList = shallowRef([].concat(config.staticRoutes));
 
     // function collectIntegrationMenu(treeNode, menuBucket, routerBucket) {
@@ -111,9 +107,9 @@ export const useAppConfigStore = defineStore('appConfig', () => {
         // res.data.forEach(item => {
         //     collectIntegrationMenu(item, integrationMenuChildren, integrationRouters);
         // })
-        integrationMenu.children = integrationMenuChildren;
-        menuList.value = [].concat(config.staticMenus, integrationMenu);
-        routerList.value = [].concat(config.staticRoutes, integrationRouters);
+        //integrationMenu.children = integrationMenuChildren;
+        //menuList.value = [].concat(config.staticMenus, integrationMenu);
+        //routerList.value = [].concat(config.staticRoutes, integrationRouters);
     }
 
     return { config, menuList, routerList, renderMenu }

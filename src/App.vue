@@ -101,10 +101,6 @@ function toggleMenuCollapse(collapse) {
   }
 }
 
-function checkAppUpdate() {
-  // checkUpdate().then(res => {})
-}
-
 function iframeLoaded(frame) {
   try {
     const iframeDocument = frame.ref.contentWindow.document;
@@ -141,7 +137,6 @@ onBeforeMount(() => {
     const route = findRoute(path);
     menuSelect(route ? path : appConfigStore.config.defaultPath);
   })
-  checkAppUpdate();
 })
 
 onMounted(() => {

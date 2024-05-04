@@ -21,8 +21,13 @@ export function copyProperties(source, target) {
     return pick(source, Object.keys(target))
 }
 
+function toElTreeDefaultLabelFormat(key, value, isLeafNode) {
+    return key;
+}
+
 export function toElTree(obj, labelFormat) {
     const data = [];
+    labelFormat = labelFormat || toElTreeDefaultLabelFormat;
     for (const key in obj) {
         const value = obj[key];
         const isLeafNode = (typeof value) !== 'object';

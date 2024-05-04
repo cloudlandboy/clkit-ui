@@ -2,7 +2,7 @@
     <el-card class="box-card">
         <template #header>
             <div class="card-header">
-                <span>进程相关</span>
+                <span>进程查杀</span>
             </div>
         </template>
         <el-form :model="processForm" label-position="right" label-width="60px">

@@ -2,7 +2,7 @@ import axios from "../axios";
 
 
 function url(path) {
-    return `os/lan/${path}`;
+    return `net/lan/${path}`;
 }
 
 export function getLanIp() {

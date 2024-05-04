@@ -12,6 +12,7 @@
                     :extensions="codemirrorExtensions" />
             </el-col>
             <el-col :span="6">
+                <el-button @click="showTree">可视化</el-button>
                 <el-button @click="format">格式化</el-button>
                 <el-button @click="compress">压缩</el-button>
                 <el-button @click="escape">转义</el-button>
@@ -58,6 +59,58 @@
             <pre style="height: 600px;overflow: auto;"><code ref="javaClassPreviewRef" class="language-java"
             v-html="previewJavaCode"></code></pre>
         </el-dialog>
+
+        <!-- json tree dialog -->
+        <el-dialog v-model="treeDialogVisible" title="JSON树" :fullscreen="true">
+            <el-tree-v2 ref="treeRef" style="width: 100%;overflow: auto;" :height="800" :data="jsonTreeData"
+                @node-click="treeNodeClickHandle">
+                <template #default="{ node, data }">
+                    <div class="clkit-json-tree-node">
+                        <span :style="{ 'color': getTypeConfig(data.type).color }" class="clkit-json-tree-node-flag">
+                            {{ getTypeConfig(data.type).flag }}
+                        </span>
+                        <span :style="{ 'font-weight': 'bold', 'color': data.isArrayElement ? '#aaa' : '#4a0' }">
+                            {{ node.label }}
+                        </span>
+                        <span v-if="data.isSimpeType">
+                            <span> : </span>
+                            <span :style="{ 'margin-left': '16px', 'color': getTypeConfig(data.type).color }"
+                                class="clkit-json-tree-node-value">
+                                {{ data.value == null ? "null" : data.value }}
+                            </span>
+                        </span>
+                    </div>
+                </template>
+            </el-tree-v2>
+            <div class="clkit-json-tree-toobar-btn">
+                <el-icon @click="treeDialogToolbarVisible = true" :size="32">
+                    <Fold />
+                </el-icon>
+            </div>
+
+            <div class="clkit-json-tree-toobar" v-show="treeDialogToolbarVisible">
+                <el-icon @click="treeDialogToolbarVisible = false" :size="32"
+                    style="vertical-align: middle;margin-right: 16px;">
+                    <Expand />
+                </el-icon>
+                <el-button @click="treeRef.setExpandedKeys([])">折叠全部</el-button>
+
+                <el-form :model="treeActiveNodeData" label-width="auto" style="margin-top: 16px;">
+                    <el-form-item label="Path">
+                        <el-input v-model="treeActiveNodeData.path" :readonly="true" />
+                    </el-form-item>
+                    <el-form-item label="Key">
+                        <el-input v-model="treeActiveNodeData.label" :readonly="true" />
+                    </el-form-item>
+                    <el-form-item label="Value">
+                        <el-input v-model="treeActiveNodeData.stringifyValue" :readonly="true" :rows="15"
+                            type="textarea" />
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-dialog>
+
+
     </el-card>
 </template>
 
@@ -75,14 +128,17 @@ import { prefixLocalStore } from "@/util/local-store";
 const localStore = prefixLocalStore('jsonUtils');
 const codemirrorExtensions = [json(), oneDark];
 const jsonCode = ref('');
+const jsonTreeData = ref([]);
 const jsonState = {
     obj: null,
     format: null, //F:格式化,C:压缩
     escaped: false, //已转义
+    treeData: null,
     reset: function () {
         this.obj = null;
         this.format = null;
         this.escaped = false;
+        this.treeData = null;
     }
 };
 const genJavaClassDialogVisible = ref(false);
@@ -98,6 +154,37 @@ const genJavaClassForm = ref(localStore.getJsonOrDefault('genJavaClassForm', {
 const previewJavaCode = ref('');
 const javaClassPreviewRef = ref();
 
+const treeDialogVisible = ref(false);
+const treeDialogToolbarVisible = ref(false);
+const treeRef = ref();
+const typeConfig = {
+    "string": {
+        color: "#f63",
+        flag: "str"
+    },
+    "number": {
+        color: "#cc00ff",
+        flag: "num"
+    },
+    "boolean": {
+        color: "#09c",
+        flag: "bol"
+    },
+    "null": {
+        color: "#bb4",
+        flag: "nul"
+    },
+    "array": {
+        color: "#FF1493",
+        flag: "[arr]"
+    },
+    "object": {
+        color: "#808000",
+        flag: "{obj}"
+    }
+}
+
+const treeActiveNodeData = ref({});
 function getJsonState() {
     if (jsonState.obj) {
         return jsonState;
@@ -180,7 +267,6 @@ function submitGenJavaClass(forPreview) {
                 parts.push(`//-------------------------${classFileName}-------------------------\n${data[classFileName].trim()}`);
             }
             previewJavaCode.value = parts.join('\n\n');
-            //  Prism.highlight(, Prism.languages.java, 'java');
             javaClassPreviewDialogVisible.value = true;
             return
         }
@@ -188,13 +274,90 @@ function submitGenJavaClass(forPreview) {
     })
 }
 
+function showTree() {
+    const state = getJsonState();
+    if (!state.treeData) {
+        state.treeData = toElTree(state.obj);
+        jsonTreeData.value = state.treeData;
+    }
+    treeActiveNodeData.value = {};
+    treeDialogToolbarVisible.value = false;
+    treeDialogVisible.value = true;
+}
+
 function highlightJavaCode() {
     Prism.highlightElement(javaClassPreviewRef.value);
+}
+
+function toElTree(obj, parent) {
+    const dataList = [];
+    const parentPath = parent ? parent.path : 'root';
+    const isArray = Array.isArray(obj);
+    for (const key in obj) {
+        const value = obj[key];
+        const data = {
+            label: key,
+            value: value,
+            stringifyValue: JSON.stringify(value, null, 2),
+            type: value == null ? 'null' : (typeof value),
+            isSimpeType: value == null || (typeof value) !== 'object',
+            isArrayElement: isArray,
+            path: isArray ? `${parentPath}[${key}]` : `${parentPath}.${key}`,
+            children: []
+        }
+        if (data.type === 'object') {
+            if (Array.isArray(value)) {
+                data.type = 'array';
+            }
+            data.children = toElTree(value, data);
+        }
+        data.id = data.path;
+        dataList.push(data);
+    }
+    return dataList;
+}
+
+function getTypeConfig(type) {
+    return typeConfig[type] || { color: '#333', flag: 'unknow' }
+}
+
+function treeNodeClickHandle(data) {
+    treeActiveNodeData.value = data;
 }
 </script>
 
 <style scoped>
 .clkit-btn-group {
     margin-top: 16px
+}
+
+.clkit-json-tree-node-flag {
+    width: 28px;
+    display: inline-block;
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+.clkit-json-tree-node:hover .clkit-json-tree-node-value {
+    font-weight: bold;
+}
+
+.clkit-json-tree-toobar-btn {
+    position: absolute;
+    top: 50px;
+    right: 32px;
+}
+
+.clkit-json-tree-toobar {
+    overflow: auto;
+    width: 560px;
+    height: 500px;
+    position: absolute;
+    top: 50px;
+    right: 16px;
+    padding: 8px;
+    padding-right: 32px;
+    background: rgb(230, 227, 227);
+    border-radius: 4px;
 }
 </style>

@@ -2,7 +2,7 @@
     <el-card class="box-card" v-loading.fullscreen="loading" element-loading-text="扫描中">
         <template #header>
             <div class="card-header">
-                <span>局域网工具</span>
+                <span>局域网扫描</span>
             </div>
         </template>
         <el-form ref="scanPortForm" :model="form" @keydown..enter="actionScanPort" label-position="right"
@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getLanIp, scanLanPort } from '@/api/os/lan';
+import { getLanIp, scanLanPort } from '@/api/net/lan';
 import { prefixLocalStore } from "@/util/local-store";
 
 const localStore = prefixLocalStore('lan');
@@ -76,4 +76,4 @@ onMounted(() => {
 })
 
 
-</script>
+</script>@/api/net/lan
