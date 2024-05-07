@@ -34,7 +34,7 @@ export class Dict {
 }
 
 /**
- * 集成类型
+ * 扩展类型
  */
 export const INTEGRATION_TYPES = {
   FOLDER: new DictItem('文件夹', 'folder', {

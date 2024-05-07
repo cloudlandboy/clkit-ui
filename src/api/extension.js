@@ -1,7 +1,7 @@
 import axios from "./axios";
 
 function url(path) {
-    return `/integration/${path || ''}`;
+    return `/extension/${path || ''}`;
 }
 
 export function create(data) {
@@ -12,16 +12,12 @@ export function findAll() {
     return axios.get(url());
 }
 
-export function findAllInstalled() {
-    return axios.get(url('installed'));
-}
-
 export function findById(id) {
     return axios.get(url(id));
 }
 
 export function update(id, data) {
-    return axios.put(url(id), data);
+    return axios.put(url(), data);
 }
 
 export function remove(id) {
@@ -32,10 +28,10 @@ export function install(id) {
     return axios.post(url(`install/${id}`));
 }
 
-export function getTree() {
-    return axios.get(url('tree'));
+export function getTree(filterInstalled) {
+    return axios.get(url('tree'), { params: { filterInstalled: !!filterInstalled } });
 }
 
-export function getInstalledTree() {
-    return axios.get(url('installed_tree'));
+export function getTypes() {
+    return axios.get(url('types'));
 }

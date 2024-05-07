@@ -1,30 +1,31 @@
 <template>
-    <el-card class="box-card" v-loading.fullscreen="installLoading" element-loading-text="安装集成中...">
+    <el-card class="box-card" v-loading.fullscreen="installLoading" element-loading-text="安装扩展中...">
         <template #header>
             <div class="card-header">
-                <span>集成管理 </span>
+                <span>扩展管理 </span>
                 <el-icon>
                     <InfoFilled />
                 </el-icon>
                 <div style="float: right;">
                     <el-button :icon="Paperclip" color="#85ce61" circle @click="openAddOrEdit(null, '0')" />
-                    <el-button :icon="Folder" color="#ffa400" circle
-                        @click="openAddOrEdit(null, '0', INTEGRATION_TYPES.FOLDER.value)" />
+                    <el-button :icon="Folder" color="#ffa400" circle @click="openAddOrEdit(null, '0', FOLDER_VALUE)" />
                 </div>
             </div>
         </template>
 
         <!-- 列表 -->
-        <el-tree :data="treeData" node-key="_id" :default-expanded-keys="defaultExpand" :accordion="true"
-            @node-expand="nodeExpand" @node-collapse="nodeCollapse">
+        <el-tree :data="treeData" node-key="id" :default-expanded-keys="defaultExpand" :accordion="true"
+            @node-expand="nodeExpand" @node-collapse="nodeCollapse"
+            :props="{ class: 'clkit-extension-manage-tree-node' }">
             <template #default="{ data }">
-                <div class="directory-tree-node">
+                <div class="clkit-extension-folder-tree-node">
                     <div>
-                        <el-icon v-if="isFolder(data.type)" size="16" color="#ffa400" class="directory-tree-icon">
+                        <el-icon v-if="isFolder(data.type)" size="16" color="#ffa400"
+                            class="clkit-extension-folder-tree-icon">
                             <Folder />
                         </el-icon>
                         <el-icon v-else size="16" :color="data.installed ? '#85ce61' : '#909399'"
-                            class="directory-tree-icon">
+                            class="clkit-extension-folder-tree-icon">
                             <Paperclip />
                         </el-icon>
                         <span>{{ data.name }}</span>
@@ -32,31 +33,33 @@
                     <div>
                         <el-button v-if="data.hide" :icon="View" circle color="#fdf6ec" size="small"
                             @click.stop="updateHide(data, false)" />
-                        <el-button v-else :icon="Hide" circle color="#73767a" size="small" @click.stop="updateHide(data, true)" />
+                        <el-button v-else :icon="Hide" circle color="#73767a" size="small"
+                            @click.stop="updateHide(data, true)" />
                         <span v-if="needInstall(data.type)" style="margin: 0 12px;">
                             <el-button v-if="data.installed" size="small" type="success"
-                                @click.stop="doInstall(data._id)">重装</el-button>
-                            <el-button v-else size="small" type="info" @click.stop="doInstall(data._id)">安装</el-button>
+                                @click.stop="doInstall(data.id)">重装</el-button>
+                            <el-button v-else size="small" type="info" @click.stop="doInstall(data.id)">安装</el-button>
                         </span>
                         <span v-if="isFolder(data.type)" style="margin: 0 12px;">
                             <el-button :icon="Paperclip" color="#85ce61" circle size="small"
-                                @click.stop="openAddOrEdit(null, data._id)" />
+                                @click.stop="openAddOrEdit(null, data.id)" />
                             <el-button :icon="Folder" color="#ffa400" circle size="small"
-                                @click.stop="openAddOrEdit(null, data._id, INTEGRATION_TYPES.FOLDER.value)" />
+                                @click.stop="openAddOrEdit(null, data.id, FOLDER_VALUE)" />
                         </span>
                         <el-button :icon="Edit" circle size="small" @click.stop="openAddOrEdit(data, data.folderId)" />
                         <el-button :icon="Right" color="#c0ebd7" circle size="small" @click.stop="doMove(data)" />
-                        <el-button v-if="!data.children || data.children.length === 0" type="danger" :icon="Delete" circle
-                            size="small" @click.stop="doRemove(data._id)" />
+                        <el-button v-if="!data.children || data.children.length === 0" type="danger" :icon="Delete"
+                            circle size="small" @click.stop="doRemove(data.id)" />
                     </div>
                 </div>
             </template>
         </el-tree>
 
         <!-- add or edit -->
-        <el-dialog v-model="formDialogVisible" :title="form._id ? '修改' : '新增'" width="750px" :close-on-click-modal="false">
-            <el-form ref="formRef" :model="form" :rules="formRules" :validate-on-rule-change="false" label-position="right"
-                label-width="120px">
+        <el-dialog v-model="formDialogVisible" :title="form.id ? '修改' : '新增'" width="750px"
+            :close-on-click-modal="false">
+            <el-form ref="formRef" :model="form" :rules="formRules" :validate-on-rule-change="false"
+                label-position="right" label-width="120px">
                 <el-form-item :label="isFolder(form.type) ? '文件夹名称' : '菜单名称'" prop="name">
                     <el-input v-model="form.name" placeholder="自定义唯一菜单名称" :validate-event="false" clearable />
                 </el-form-item>
@@ -64,26 +67,21 @@
                     <el-input-number v-model="form.sortValue" :validate-event="false" />
                 </el-form-item>
                 <div v-show="!isFolder(form.type)">
-                    <el-form-item label="地址类型" prop="type">
-                        <el-select v-model="form.type" style="width: 100%;">
-                            <el-option v-show="!item.ve(INTEGRATION_TYPES.FOLDER.value)" v-for="item in INTEGRATION_TYPES"
-                                :key="item.value" :label="item.label" :value="item.value" />
+                    <el-form-item label="类型">
+                        <el-select v-model="form.type">
+                            <el-option v-for="(et, value) in extensionTypeMap" v-show="!isFolder(value)" :label="et.label"
+                                :value="value" :key="value" />
                         </el-select>
                     </el-form-item>
                     <el-form-item label="地址" prop="url">
-                        <el-input v-model="form.url" placeholder="下载地址" :validate-event="false" clearable />
+                        <el-input v-model="form.url" :validate-event="false" />
                     </el-form-item>
-                    <el-form-item label="index路径" prop="index" v-if="!INTEGRATION_TYPES.ONLINE_URL.ve(form.type)">
-                        <el-input v-model="form.index" placeholder="主页路径" :validate-event="false" clearable />
-                    </el-form-item>
-                    <el-form-item label="插入脚本" prop="insertScript" v-if="!INTEGRATION_TYPES.ONLINE_URL.ve(form.type)">
-                        <codemirror v-model="form.insertScript" placeholder="菜单激活时插入到iframe的script"
-                            :extensions="scriptExtensions" style="min-height: 150px;border: 1px dotted #b1b3b8;width: 100%;"
-                            class="custom-scrollbar hiden-cm-lineNumbers" />
+                    <el-form-item label="主页" prop="index">
+                        <el-input v-model="form.index" :validate-event="false" />
                     </el-form-item>
                 </div>
                 <el-form-item class="el-form-right-btn-group">
-                    <el-button type="primary" @click="submitSaveOrUpdate">{{ form._id ? '更新' : '保存' }}</el-button>
+                    <el-button type="primary" @click="submitSaveOrUpdate">{{ form.id ? '更新' : '保存' }}</el-button>
                     <el-button @click="formDialogVisible = false">取消</el-button>
                 </el-form-item>
             </el-form>
@@ -91,7 +89,7 @@
 
         <!-- move -->
         <el-dialog v-model="moveDialogVisible" title="移动" width="750px">
-            <el-tree :data="moveTreeData" node-key="_id" :accordion="true" :props="{ class: getMoveNodeClass }"
+            <el-tree :data="moveTreeData" node-key="id" :accordion="true" :props="{ class: getMoveNodeClass }"
                 :expand-on-click-node="false" style="user-select: none;" @node-click="submitMove">
                 <template #default="{ data }">
                     <div>
@@ -107,23 +105,22 @@
     </el-card>
 </template>
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onBeforeMount, computed } from "vue";
 import { useAppConfigStore } from "@/stores/app-config";
-import { FieldDef, copyProperties } from "../util/object-utils";
-import { INTEGRATION_TYPES, INTEGRATION_TYPE_DICT } from "../constant/dict.constants";
-import { create, update, remove, getTree, install } from "../api/integration";
+import { ObjectSupplier, copyProperties } from "@/util/object-utils";
+import { create, update, remove, getTree, install, getTypes } from "@/api/extension";
 import { ElNotification } from "element-plus";
-import { javascript, javascriptLanguage } from '@codemirror/lang-javascript'
 import { Delete, Edit, Paperclip, Folder, Right, Hide, View } from '@element-plus/icons-vue'
 
+const FOLDER_VALUE = '0';
 const expandSet = ref(new Set());
 const defaultExpand = computed(() => {
     return Array.from(expandSet.value);
 });
 
-const scriptExtensions = [javascript(), javascriptLanguage];
 const appConfigStore = useAppConfigStore();
 
+const extensionTypeMap = {};
 const installLoading = ref(false);
 
 const folderRules = {
@@ -140,42 +137,43 @@ const treeData = ref([]);
 const moveTreeData = computed(() => {
     return [{
         name: "/",
-        type: "folder",
-        _id: "0",
+        type: "0",
+        id: "0",
         children: treeData.value
     }]
 })
 
-const formFieldDef = new FieldDef({
-    _id: null,
-    folderId: '0',
-    name: '',
-    type: INTEGRATION_TYPES.ONLINE_URL.value,
-    url: '',
-    index: '',
-    sortValue: 0,
-    insertScript: '',
-    installed: false,
-    hide: false
+const formObjSupplier = new ObjectSupplier(() => {
+    return {
+        id: null,
+        folderId: '0',
+        name: '',
+        type: '1',
+        url: '',
+        index: '',
+        sortValue: 0,
+        hide: false
+    }
 });
 
 const formRef = ref();
-const form = ref(formFieldDef.getObj());
+const form = ref(formObjSupplier.getObj());
+
 
 const formDialogVisible = ref(false);
 const moveDialogVisible = ref(false);
 
 async function fetchData() {
     return getTree().then(res => {
-        treeData.value = res.data;
+        treeData.value = res.data.data;
     })
 }
 
 function openAddOrEdit(data, folderId, type) {
     if (data) {
-        form.value = copyProperties(data, formFieldDef.getObj());
+        form.value = copyProperties(data, formObjSupplier.getObj());
     } else {
-        form.value = formFieldDef.getObj();
+        form.value = formObjSupplier.getObj();
         if (type) {
             form.value.type = type;
         }
@@ -190,14 +188,15 @@ function submitSaveOrUpdate() {
         if (!isValid) {
             return;
         }
-        if (form.value._id) {
-            update(form.value._id, form.value).then(() => fetchData()).then(() => {
+        const data = form.value;
+        if (data.id) {
+            update(data.id, data).then(() => fetchData()).then(() => {
                 formDialogVisible.value = false;
                 appConfigStore.renderMenu();
             });
             return
         }
-        create(form.value).then(() => fetchData()).then(() => {
+        create(data).then(() => fetchData()).then(() => {
             formDialogVisible.value = false;
             appConfigStore.renderMenu();
         });
@@ -224,51 +223,56 @@ function doRemove(id) {
 }
 
 function doMove(data) {
-    form.value = copyProperties(data, formFieldDef.getObj());
+    form.value = copyProperties(data, formObjSupplier.getObj());
     moveDialogVisible.value = true;
 }
 
 function updateHide(data, hide) {
-    form.value = copyProperties(data, formFieldDef.getObj());
+    form.value = copyProperties(data, formObjSupplier.getObj());
     if (form.value.hide !== hide) {
         form.value.hide = hide;
-        update(form.value._id, form.value).then(() => fetchData()).then(() => {
+        update(form.value.id, form.value).then(() => fetchData()).then(() => {
             appConfigStore.renderMenu();
         });
     }
 }
 
 function isFolder(value) {
-    return INTEGRATION_TYPES.FOLDER.ve(value);
+    return value == FOLDER_VALUE;
 }
 
 function needInstall(value) {
-    const lt = INTEGRATION_TYPE_DICT.findByValue(value);
-    return lt && lt.needInstall;
+    const type = extensionTypeMap[value];
+    return type && type.needInstall;
 }
 
 function nodeExpand(data) {
-    expandSet.value.add(data._id);
+    expandSet.value.add(data.id);
 }
 
 function nodeCollapse(data) {
-    expandSet.value.delete(data._id);
+    expandSet.value.delete(data.id);
 }
 
 function getMoveNodeClass(data) {
-    return (isFolder(data.type) && data._id !== form.value._id) ? '' : 'display-none';
+    return (isFolder(data.type) && data.id !== form.value.id) ? '' : 'display-none';
 }
 
 function submitMove(data) {
-    form.value.folderId = data._id;
-    expandSet.value.add(form.value._id);
-    update(form.value._id, form.value).then(() => fetchData()).then(() => {
+    form.value.folderId = data.id;
+    expandSet.value.add(form.value.id);
+    update(form.value.id, form.value).then(() => fetchData()).then(() => {
         moveDialogVisible.value = false;
         appConfigStore.renderMenu();
     });
 }
 
-onMounted(() => {
+onBeforeMount(() => {
+    getTypes().then(res => {
+        res.data.data.forEach(type => {
+            extensionTypeMap[type.value] = type;
+        })
+    })
     fetchData();
 });
 
@@ -276,18 +280,18 @@ onMounted(() => {
 </script>
 
 <style>
-.hiden-cm-lineNumbers .cm-gutters {
-    display: none !important;
-}
-
-.directory-tree-node {
+.clkit-extension-folder-tree-node {
     display: flex;
     width: 100%;
     justify-content: space-between;
 }
 
-.directory-tree-icon {
+.clkit-extension-folder-tree-icon {
     vertical-align: middle;
     margin-right: 16px;
+}
+
+.clkit-extension-manage-tree-node {
+    padding: 8px 0;
 }
 </style>

@@ -17,6 +17,18 @@ export class FieldDef {
     }
 }
 
+export class ObjectSupplier {
+    supplier;
+    constructor(supplier) {
+        this.supplier = supplier;
+    }
+
+    getObj() {
+        return this.supplier();
+    }
+
+}
+
 export function copyProperties(source, target) {
     return pick(source, Object.keys(target))
 }

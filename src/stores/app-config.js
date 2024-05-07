@@ -8,21 +8,23 @@ import Process from '@/components/os/process.vue';
 import IdentityInfo from '@/components/data_gen/identity-info.vue';
 import CrudCodeGen from '@/components/code/curd_gen/crud-code-gen.vue';
 import ReplaceRow from '@/components/text_process/replace_row/index.vue';
-import IntegrationManage from "@/components/integration-manage.vue";
+import ExtensionManage from "@/components/extension/extension-manage.vue";
 import DataBackup from "@/components/app/data-backup.vue";
 import JsonUtils from "@/components/code/json-utils.vue";
-// import { getInstalledTree } from "@/api/integration";
-// import { INTEGRATION_TYPES } from "../constant/dict.constants";
+import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
 
-// const serverAddressPrefix = import.meta.env.VITE_SERVER_ADDRESS || '';
+const serverAddress = import.meta.env.VITE_SERVER_ADDRESS || '';
 
-// function serverIntegrationUrl(id, index) {
-//     if (index.startsWith('/')) {
-//         index = index.substring(1);
-//     }
-//     return `${serverAddressPrefix}/integration/${id}/${index}`;
-// }
+function getServerResourceUrl(path) {
+    if (!path) {
+        return `${serverAddress}/api/404`;
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+    return `${serverAddress}/${path.startsWith('/') ? path.substring(1) : path}`;
+}
 
 export const useAppConfigStore = defineStore('appConfig', () => {
     const idGen = new AutoIncrementKey();
@@ -72,44 +74,45 @@ export const useAppConfigStore = defineStore('appConfig', () => {
             { path: '/replace-each-row', view: ReplaceRow, isComponent: true },
             { path: '/lan-scan', view: LanScan, isComponent: true },
             { path: '/my-net-info', view: MyNetInfo, isComponent: true },
-            { path: '/integration-manage', view: IntegrationManage, isComponent: true }
+            { path: '/extension-manage', view: ExtensionManage, isComponent: true }
         ]
     }
 
-    const integrationMenu = {
-        path: idGen.getStringKey(), title: '集成', children: [{ path: '/integration-manage', title: '集成管理' }]
+    const extensionMenu = {
+        path: idGen.getStringKey(), title: '扩展', children: [{ path: '/extension-manage', title: '扩展管理' }]
     }
 
     const menuList = ref([].concat(config.staticMenus));
     const routerList = shallowRef([].concat(config.staticRoutes));
 
-    // function collectIntegrationMenu(treeNode, menuBucket, routerBucket) {
-    //     const path = `/integration/${treeNode._id}`;
-    //     const menu = { path, title: treeNode.name, hide: !!treeNode.hide };
-    //     menuBucket.push(menu);
-    //     if (INTEGRATION_TYPES.FOLDER.ve(treeNode.type)) {
-    //         menu.children = [];
-    //         treeNode.children.map(c => collectIntegrationMenu(c, menu.children, routerBucket));
-    //     } else {
-    //         routerBucket.push({
-    //             path: path,
-    //             view: INTEGRATION_TYPES.ONLINE_URL.ve(treeNode.type) ? treeNode.url : serverIntegrationUrl(treeNode._id, treeNode.index),
-    //             isComponent: false,
-    //             insertScript: treeNode.insertScript
-    //         });
-    //     }
-    // }
+    function collectExtensionMenu(extension, menuBucket, routerBucket) {
+        const menu = { path: `extension-${extension.id}`, title: extension.name, hide: !!extension.hide };
+        menuBucket.push(menu);
+        if (extension.type === '0') {
+            menu.children = [];
+            if (extension.children) {
+                extension.children.map(et => collectExtensionMenu(et, menu.children, routerBucket));
+            }
+        } else {
+            routerBucket.push({
+                path: menu.path,
+                view: getServerResourceUrl(extension.path),
+                isComponent: false,
+                insertScript: ''
+            });
+        }
+    }
 
     async function renderMenu() {
-        const integrationMenuChildren = [{ path: '/integration-manage', title: '集成管理' }];
-        const integrationRouters = [];
-        // const res = await getInstalledTree();
-        // res.data.forEach(item => {
-        //     collectIntegrationMenu(item, integrationMenuChildren, integrationRouters);
-        // })
-        //integrationMenu.children = integrationMenuChildren;
-        //menuList.value = [].concat(config.staticMenus, integrationMenu);
-        //routerList.value = [].concat(config.staticRoutes, integrationRouters);
+        const extensionMenuChildren = [{ path: '/extension-manage', title: '扩展管理' }];
+        const extensionRouters = [];
+        const res = await getTree(true);
+        res.data.data.forEach(extension => {
+            collectExtensionMenu(extension, extensionMenuChildren, extensionRouters);
+        })
+        extensionMenu.children = extensionMenuChildren;
+        menuList.value = [].concat(config.staticMenus, extensionMenu);
+        routerList.value = [].concat(config.staticRoutes, extensionRouters);
     }
 
     return { config, menuList, routerList, renderMenu }
