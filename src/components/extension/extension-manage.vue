@@ -69,8 +69,8 @@
                 <div v-show="!isFolder(form.type)">
                     <el-form-item label="类型">
                         <el-select v-model="form.type">
-                            <el-option v-for="(et, value) in extensionTypeMap" v-show="!isFolder(value)" :label="et.label"
-                                :value="value" :key="value" />
+                            <el-option v-for="(et, value) in extensionTypeMap" v-show="!isFolder(value)"
+                                :label="et.label" :value="value" :key="value" />
                         </el-select>
                     </el-form-item>
                     <el-form-item label="地址" prop="url">
@@ -80,7 +80,7 @@
                         <el-input v-model="form.index" :validate-event="false" />
                     </el-form-item>
                 </div>
-                <el-form-item class="el-form-right-btn-group">
+                <el-form-item class="clkit-form-right-btn-group">
                     <el-button type="primary" @click="submitSaveOrUpdate">{{ form.id ? '更新' : '保存' }}</el-button>
                     <el-button @click="formDialogVisible = false">取消</el-button>
                 </el-form-item>
@@ -106,7 +106,7 @@
 </template>
 <script setup>
 import { ref, onBeforeMount, computed } from "vue";
-import { useAppConfigStore } from "@/stores/app-config";
+import { useAppStore } from "@/stores/app";
 import { ObjectSupplier, copyProperties } from "@/util/object-utils";
 import { create, update, remove, getTree, install, getTypes } from "@/api/extension";
 import { ElNotification } from "element-plus";
@@ -118,7 +118,7 @@ const defaultExpand = computed(() => {
     return Array.from(expandSet.value);
 });
 
-const appConfigStore = useAppConfigStore();
+const appStore = useAppStore();
 
 const extensionTypeMap = {};
 const installLoading = ref(false);
@@ -192,13 +192,13 @@ function submitSaveOrUpdate() {
         if (data.id) {
             update(data.id, data).then(() => fetchData()).then(() => {
                 formDialogVisible.value = false;
-                appConfigStore.renderMenu();
+                appStore.renderMenu();
             });
             return
         }
         create(data).then(() => fetchData()).then(() => {
             formDialogVisible.value = false;
-            appConfigStore.renderMenu();
+            appStore.renderMenu();
         });
     });
 }
@@ -206,7 +206,7 @@ function submitSaveOrUpdate() {
 function doInstall(id) {
     installLoading.value = true;
     install(id).then(res => fetchData()).then(() => {
-        appConfigStore.renderMenu();
+        appStore.renderMenu();
         ElNotification.success({
             message: '安装成功'
         });
@@ -219,7 +219,7 @@ function doRemove(id) {
     remove(id).then(res => {
         expandSet.value.delete(id);
         return fetchData();
-    }).then(() => appConfigStore.renderMenu())
+    }).then(() => appStore.renderMenu())
 }
 
 function doMove(data) {
@@ -232,7 +232,7 @@ function updateHide(data, hide) {
     if (form.value.hide !== hide) {
         form.value.hide = hide;
         update(form.value.id, form.value).then(() => fetchData()).then(() => {
-            appConfigStore.renderMenu();
+            appStore.renderMenu();
         });
     }
 }
@@ -263,7 +263,7 @@ function submitMove(data) {
     expandSet.value.add(form.value.id);
     update(form.value.id, form.value).then(() => fetchData()).then(() => {
         moveDialogVisible.value = false;
-        appConfigStore.renderMenu();
+        appStore.renderMenu();
     });
 }
 

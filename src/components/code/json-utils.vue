@@ -46,7 +46,7 @@
                 <el-form-item label="Serializable">
                     <el-switch v-model="genJavaClassForm.serializable" />
                 </el-form-item>
-                <el-form-item class="el-form-right-btn-group">
+                <el-form-item class="clkit-form-right-btn-group">
                     <el-button @click="submitGenJavaClass(true)">预览</el-button>
                     <el-button type="primary" @click="submitGenJavaClass(false)">生成</el-button>
                 </el-form-item>

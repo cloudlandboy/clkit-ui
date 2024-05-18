@@ -32,11 +32,11 @@
             </el-form-item>
             <el-form-item>
                 <el-input v-model="form.text" :rows="8" type="textarea" placeholder="请输入文本" @input="formatText"
-                    resize="none" class="custom-scrollbar" input-style="white-space: pre" />
+                    resize="none" class="clkit-custom-scrollbar" input-style="white-space: pre" />
             </el-form-item>
             <el-form-item>
                 <el-input v-model="form.processedText" :rows="8" readonly type="textarea" resize="none"
-                    :placeholder="presetList[preset] ? presetList[preset].pattern : ''" class="custom-scrollbar"
+                    :placeholder="presetList[preset] ? presetList[preset].pattern : ''" class="clkit-custom-scrollbar"
                     input-style="white-space: pre" />
             </el-form-item>
         </el-form>

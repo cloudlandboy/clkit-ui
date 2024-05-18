@@ -155,7 +155,7 @@
                     :extensions="codemirrorExtensions" :disabled="formDisabled" />
             </div>
 
-            <div class="content-right">
+            <div class="clkit-content-right">
                 <el-button type="primary" @click="submitSaveOrUpdateTemplate">{{ templateForm.id ? '更新' :
                 '保存' }}</el-button>
                 <el-button @click="templateAddDialogVisible = false">取消</el-button>

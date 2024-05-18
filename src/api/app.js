@@ -25,3 +25,11 @@ export function getVersion() {
 export function checkUpdate() {
     return axios.get(url('check_update'));
 }
+
+export function getDict(...type) {
+    return axios.get(url('dict'), {
+        params: {
+            types: type.join(',')
+        }
+    });
+}

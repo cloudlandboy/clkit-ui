@@ -61,7 +61,7 @@
                     <el-input v-if="param.type === 'input'" v-model="genForm.extraParams[param.key]" />
                     <el-switch v-if="param.type === 'switch'" v-model="genForm.extraParams[param.key]" />
                 </el-form-item>
-                <div class="content-right">
+                <div class="clkit-content-right">
                     <el-button type="primary" @click="submitGen">生成</el-button>
                 </div>
             </el-form>

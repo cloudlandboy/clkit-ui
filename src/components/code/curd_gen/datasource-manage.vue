@@ -48,7 +48,7 @@
             <el-form-item label="数据库" prop="database">
                 <el-input v-model="dbForm.database" placeholder="数据库名称" :validate-event="false" clearable />
             </el-form-item>
-            <el-form-item class="el-form-right-btn-group">
+            <el-form-item class="clkit-form-right-btn-group">
                 <el-button type="primary" @click="submitSaveOrUpdateDb">{{ dbForm.id ? '更新' : '保存' }}</el-button>
                 <el-button @click="dbAddDialogVisible = false">取消</el-button>
             </el-form-item>

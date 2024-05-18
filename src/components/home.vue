@@ -1,5 +1,8 @@
 <template>
-    <div class="kit-home-content">
+    <div class="clkit-home-content">
+        <div>
+            {{ appStore.config.title }}
+        </div>
         <ul>
             <li>当前版本: <el-tag type="success" style="margin-left: 1rem;">{{ version }}</el-tag></li>
             <li>博客地址：<a href="https://www.clboy.cn/" target="_blank">https://www.clboy.cn</a></li>
@@ -13,8 +16,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useAppStore } from "@/stores/app";
 import { getVersion } from "@/api/app";
 
+const appStore = useAppStore();
 const version = ref('');
 
 onMounted(() => {
@@ -22,22 +27,31 @@ onMounted(() => {
 })
 </script>
 
-<style>
-.kit-home-content {
+<style scoped>
+.clkit-home-content>div:first-child {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 48px;
+    font-weight: 800;
+    font-family: "JetBrainsMono";
+    color: var(--clkit-color-pale-purple);
+}
+
+.clkit-home-content {
     padding: 1rem;
 }
 
-.kit-home-content ul {
+.clkit-home-content ul {
     margin-left: 38px;
     list-style-type: disclosure-closed;
 }
 
-.kit-home-content li {
+.clkit-home-content li {
     padding: 1rem;
     color: #337ecc;
 }
 
-.kit-home-content li>a {
+.clkit-home-content li>a {
     text-decoration: none;
     color: #73767a;
     font-size: 0.8rem;

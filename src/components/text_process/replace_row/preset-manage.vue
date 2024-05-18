@@ -59,7 +59,7 @@
                 </el-table>
             </el-form-item>
 
-            <div class="content-right">
+            <div class="clkit-content-right">
                 <el-button type="primary" @click="submitSaveOrUpdate">{{ form._id ? '更新' : '保存' }}</el-button>
                 <el-button @click="formDialogVisible = false">取消</el-button>
             </div>

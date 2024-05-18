@@ -11,6 +11,7 @@ import ReplaceRow from '@/components/text_process/replace_row/index.vue';
 import ExtensionManage from "@/components/extension/extension-manage.vue";
 import DataBackup from "@/components/app/data-backup.vue";
 import JsonUtils from "@/components/code/json-utils.vue";
+import Todo from "@/components/job/todo/index.vue";
 import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
 
@@ -26,11 +27,11 @@ function getServerResourceUrl(path) {
     return `${serverAddress}/${path.startsWith('/') ? path.substring(1) : path}`;
 }
 
-export const useAppConfigStore = defineStore('appConfig', () => {
+export const useAppStore = defineStore('appConfig', () => {
     const idGen = new AutoIncrementKey();
     const config = {
-        title: 'CLKIT',
-        iconSrc: '/author-avatar.png',
+        title: 'Clkit',
+        iconSrc: '/clkit.ico',
         contextPath: '',
         defaultPath: '/',
         maxIframeCache: 8,
@@ -44,6 +45,11 @@ export const useAppConfigStore = defineStore('appConfig', () => {
                 path: idGen.getStringKey(), title: '代码', children: [
                     { path: '/crud-code-gen', title: '增删改查生成' },
                     { path: '/json-utils', title: 'JSON工具' },
+                ]
+            },
+            {
+                path: idGen.getStringKey(), title: '任务', children: [
+                    { path: '/todo', title: '待办' },
                 ]
             },
             {
@@ -74,7 +80,8 @@ export const useAppConfigStore = defineStore('appConfig', () => {
             { path: '/replace-each-row', view: ReplaceRow, isComponent: true },
             { path: '/lan-scan', view: LanScan, isComponent: true },
             { path: '/my-net-info', view: MyNetInfo, isComponent: true },
-            { path: '/extension-manage', view: ExtensionManage, isComponent: true }
+            { path: '/extension-manage', view: ExtensionManage, isComponent: true },
+            { path: '/todo', view: Todo, isComponent: true }
         ]
     }
 

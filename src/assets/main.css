@@ -1,12 +1,12 @@
 @font-face {
-  font-family: "SFMono";
-  src: url('./SFMono-Regular-10.otf');
+  font-family: "JetBrainsMono";
+  src: url('./fonts/JetBrainsMono-Regular.woff2');
   font-weight: normal;
   font-style: normal;
 }
 
 .v-codemirror .cm-line {
-  font-family: "SFMono";
+  font-family: "JetBrainsMono";
 }
 
 .v-codemirror .cm-focused {
@@ -39,32 +39,33 @@ code {
   width: 100%;
 }
 
-.el-form-right-btn-group>.el-form-item__content {
-  justify-content: right;
+.clkit-form-right-btn-group>.el-form-item__content {
+  justify-content: flex-end;
 }
 
-.content-right {
+.clkit-content-right {
   text-align: right;
+  justify-content: flex-end;
 }
 
 .input-content-left .el-input .el-input__inner {
   text-align: left;
 }
 
-.custom-scrollbar::-webkit-scrollbar,
-.custom-scrollbar *::-webkit-scrollbar {
+.clkit-custom-scrollbar::-webkit-scrollbar,
+.clkit-custom-scrollbar *::-webkit-scrollbar {
   width: 3px;
   height: 3px;
 }
 
-.custom-scrollbar::-webkit-scrollbar,
-.custom-scrollbar *::-webkit-scrollbar-thumb {
+.clkit-custom-scrollbar::-webkit-scrollbar,
+.clkit-custom-scrollbar *::-webkit-scrollbar-thumb {
   background: #b3e19d;
   border-radius: 6px;
 }
 
-.custom-scrollbar::-webkit-scrollbar,
-.custom-scrollbar *::-webkit-scrollbar-track {
+.clkit-custom-scrollbar::-webkit-scrollbar,
+.clkit-custom-scrollbar *::-webkit-scrollbar-track {
   background: #f0f0f0;
   cursor: grab;
 }
@@ -80,4 +81,14 @@ code {
 
 .display-none {
   display: none;
+}
+
+.clkit-overflow-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clkit-none-border-el-input .el-input__wrapper {
+  box-shadow: none;
 }

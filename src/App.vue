@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted, onBeforeMount, h, shallowRef } from 'vue';
-import { useAppConfigStore } from "./stores/app-config";
 import Clipboard from 'clipboard';
-import TreeMenu from "./components/tree-menu.vue";
+import { ref, onMounted, onBeforeMount, h, shallowRef } from 'vue';
+import { useAppStore } from "@/stores/app";
+import TreeMenu from "@/components/tree-menu.vue";
 
 const containerState = ref({
   width: window.innerWidth,
@@ -42,17 +42,17 @@ const containerLayoutDef = {
 const containerLayout = ref(containerLayoutDef.normal);
 
 const menuCollapse = ref(false);
-const appConfigStore = useAppConfigStore();
+const appStore = useAppStore();
 const menuRef = ref();
 
 const iframeCache = ref([]);
 
-const defaultOpeneds = [appConfigStore.menuList[0].path];
+const defaultOpeneds = [appStore.menuList[0].path];
 const currentRouter = shallowRef({ path: '' });
 const updateLoading = ref(false);
 
 function menuSelect(path) {
-  window.history.replaceState(null, "", appConfigStore.config.contextPath + path);
+  window.history.replaceState(null, "", appStore.config.contextPath + path);
   currentRouter.value = findRoute(path);
   if (currentRouter.value.isComponent) {
     return
@@ -64,7 +64,7 @@ function menuSelect(path) {
     return;
   }
 
-  if (iframeCache.value.length < appConfigStore.config.maxIframeCache) {
+  if (iframeCache.value.length < appStore.config.maxIframeCache) {
     toView = { index: iframeCache.value.length, router: currentRouter.value, ref: null, viewCount: 0 };
     iframeCache.value.push(toView);
     return
@@ -86,7 +86,7 @@ function menuSelect(path) {
 }
 
 function findRoute(path) {
-  return appConfigStore.routerList.find(r => r.path === path);
+  return appStore.routerList.find(r => r.path === path);
 }
 
 function toggleMenuCollapse(collapse) {
@@ -132,10 +132,10 @@ function openInNewTab() {
 }
 
 onBeforeMount(() => {
-  appConfigStore.renderMenu().finally(() => {
-    const path = location.pathname.substring(appConfigStore.config.contextPath.length - 1);
+  appStore.renderMenu().finally(() => {
+    const path = location.pathname.substring(appStore.config.contextPath.length - 1);
     const route = findRoute(path);
-    menuSelect(route ? path : appConfigStore.config.defaultPath);
+    menuSelect(route ? path : appStore.config.defaultPath);
   })
 })
 
@@ -156,8 +156,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <vue-drag-resize class="clkit-menubar" :w="58" :h="22" :isActive="false" :z="20" :isResizable="false"
-    :parentLimitation="true" @dragstop="containerState.menuBarMoveing = false" @dragging="menuBarDragging">
+  <vue-drag-resize class="clkit-menubar" :w="58" :h="22" :isActive="false" :x="(containerState.width / 2) - 58" :z="20"
+    :isResizable="false" :parentLimitation="true" :parentH="containerState.height - 20"
+    @dragstop="containerState.menuBarMoveing = false" @dragging="menuBarDragging">
     <el-icon class="clkit-menubar-btn" v-show="menuCollapse" color="red" @mouseup="toggleMenuCollapse(false)"
       size="large">
       <Menu />
@@ -174,13 +175,11 @@ onMounted(() => {
     <el-row>
       <el-col :xs="containerLayout.menu.xs" :sm="containerLayout.menu.sm" :lg="containerLayout.menu.lg">
         <div class="clkit-title" @click="menuSelect('/')">
-          <el-avatar :src="appConfigStore.config.iconSrc" v-if="appConfigStore.config.iconSrc"
-            style="vertical-align:middle;" />
-          <a v-show="!menuCollapse" href="javascript:void(0);">{{ appConfigStore.config.title }}</a>
+          <el-avatar :alt="appStore.config.title" :src="appStore.config.iconSrc" v-if="appStore.config.iconSrc" />
         </div>
         <el-menu ref="menuRef" :default-active="currentRouter.path" @select="menuSelect"
           :default-openeds="defaultOpeneds" :collapse="menuCollapse" :collapse-transition="false">
-          <tree-menu :menuList="appConfigStore.menuList" :menuCollapse="menuCollapse" />
+          <tree-menu :menuList="appStore.menuList" :menuCollapse="menuCollapse" />
         </el-menu>
       </el-col>
       <el-col :xs="containerLayout.view.xs" :sm="containerLayout.view.sm" :lg="containerLayout.view.lg">
@@ -203,23 +202,13 @@ onMounted(() => {
 .clkit-title {
   margin-top: 12px;
   padding: var(--el-menu-base-level-padding);
-  margin-right: 16px;
-}
-
-.clkit-title a:last-child {
-  margin-left: 6px;
-  font-family: cursive;
-  font-size: 1rem;
-  font-weight: bold;
-  text-decoration: none;
-  color: #dc392d;
+  text-align: center;
 }
 
 .el-menu,
 .clkit-title {
   user-select: none;
 }
-
 
 .clkit-container {
   width: 100%;
