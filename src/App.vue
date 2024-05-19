@@ -2,7 +2,9 @@
 import Clipboard from 'clipboard';
 import { ref, onMounted, onBeforeMount, h, shallowRef } from 'vue';
 import { useAppStore } from "@/stores/app";
+import { useAuthStore } from "@/stores/auth"
 import TreeMenu from "@/components/tree-menu.vue";
+import Login from "@/components/login.vue";
 
 const containerState = ref({
   width: window.innerWidth,
@@ -43,6 +45,7 @@ const containerLayout = ref(containerLayoutDef.normal);
 
 const menuCollapse = ref(false);
 const appStore = useAppStore();
+const authStore = useAuthStore();
 const menuRef = ref();
 
 const iframeCache = ref([]);
@@ -156,21 +159,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <vue-drag-resize class="clkit-menubar" :w="58" :h="22" :isActive="false" :x="(containerState.width / 2) - 58" :z="20"
-    :isResizable="false" :parentLimitation="true" :parentH="containerState.height - 20"
-    @dragstop="containerState.menuBarMoveing = false" @dragging="menuBarDragging">
-    <el-icon class="clkit-menubar-btn" v-show="menuCollapse" color="red" @mouseup="toggleMenuCollapse(false)"
-      size="large">
-      <Menu />
-    </el-icon>
-    <el-icon class="clkit-menubar-btn" v-show="!menuCollapse" color="red" @mouseup="toggleMenuCollapse(true)"
-      size="large">
-      <Fold />
-    </el-icon>
-    <el-icon class="clkit-menubar-btn" color="blue" size="large" @click="openInNewTab">
-      <TopRight />
-    </el-icon>
-  </vue-drag-resize>
   <div class="clkit-container" v-loading.fullscreen.lock="updateLoading" element-loading-text="更新中...">
     <el-row>
       <el-col :xs="containerLayout.menu.xs" :sm="containerLayout.menu.sm" :lg="containerLayout.menu.lg">
@@ -183,19 +171,49 @@ onMounted(() => {
         </el-menu>
       </el-col>
       <el-col :xs="containerLayout.view.xs" :sm="containerLayout.view.sm" :lg="containerLayout.view.lg">
-        <div class="route-content">
-          <div>
-            <component v-if="currentRouter.isComponent" :is="currentRouter.view" />
-          </div>
-          <div v-for="frame in iframeCache" :key="frame.index">
-            <iframe v-show="currentRouter.path === frame.router.path" :src="frame.router.view" frameborder="0"
-              allowfullscreen="true" @load="iframeLoaded(frame)" :ref="frame.ref"
-              :style="{ width: '99%', height: containerState.height + 'px' }"></iframe>
-          </div>
-        </div>
+        <el-container>
+          <el-header class="clkit-top-menu">
+            <div class="clkit-top-menu-item">
+              <el-icon v-show="menuCollapse" @mouseup="toggleMenuCollapse(false)" :size="28">
+                <Menu />
+              </el-icon>
+              <el-icon v-show="!menuCollapse" @mouseup="toggleMenuCollapse(true)" :size="28">
+                <Fold />
+              </el-icon>
+            </div>
+            <div class="clkit-top-menu-item">
+              <el-link type="primary" v-if="authStore.authInfo.user.isAnonymous" :underline="false"
+                @click="authStore.actionLogin">登录</el-link>
+              <el-dropdown v-else>
+                <el-avatar>{{ authStore.authInfo.user.realName[0] }}</el-avatar>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>个人信息</el-dropdown-item>
+                    <el-dropdown-item @click="authStore.actionLogout">退出登录</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </el-header>
+          <el-main>
+            <div class="route-content">
+              <div>
+                <component v-if="currentRouter.isComponent" :is="currentRouter.view" />
+              </div>
+              <div v-for="frame in iframeCache" :key="frame.index">
+                <iframe v-show="currentRouter.path === frame.router.path" :src="frame.router.view" frameborder="0"
+                  allowfullscreen="true" @load="iframeLoaded(frame)" :ref="frame.ref"
+                  :style="{ width: '99%', height: containerState.height + 'px' }"></iframe>
+              </div>
+            </div>
+          </el-main>
+        </el-container>
       </el-col>
     </el-row>
   </div>
+
+  <!-- 登录 -->
+  <login />
 </template>
 
 <style>
@@ -218,16 +236,28 @@ onMounted(() => {
   width: 180px
 }
 
-.clkit-menubar {
-  opacity: 0.2;
+.clkit-top-menu {
+  display: flex;
+  justify-content: flex-end;
+  line-height: var(--el-header-height);
+  user-select: none;
 }
 
-.clkit-menubar:hover {
-  opacity: 1;
-}
-
-.clkit-menubar-btn {
+.clkit-top-menu-item {
   cursor: pointer;
-  margin-right: 8px;
+  margin-right: 16px;
+}
+
+.clkit-top-menu-item .el-icon,
+.clkit-top-menu-item .el-dropdown {
+  vertical-align: middle;
+}
+
+.clkit-top-menu-item .el-dropdown {
+  line-height: var(--el-header-height);
+}
+
+.clkit-top-menu-item .el-dropdown .el-tooltip__trigger:focus-visible {
+  outline: none;
 }
 </style>

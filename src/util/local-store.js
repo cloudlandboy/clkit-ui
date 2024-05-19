@@ -46,6 +46,10 @@ class LocalStore {
         }
     }
 
+    remove(key) {
+        localStorage.removeItem(this.key(key));
+    }
+
     key(k) {
         return this.prefixDot + k;
     }

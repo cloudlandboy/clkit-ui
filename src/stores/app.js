@@ -27,7 +27,7 @@ function getServerResourceUrl(path) {
     return `${serverAddress}/${path.startsWith('/') ? path.substring(1) : path}`;
 }
 
-export const useAppStore = defineStore('appConfig', () => {
+export const useAppStore = defineStore('app', () => {
     const idGen = new AutoIncrementKey();
     const config = {
         title: 'Clkit',
