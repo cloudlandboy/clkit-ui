@@ -7,13 +7,14 @@ import MyNetInfo from '@/components/net/my-net-info.vue';
 import Process from '@/components/os/process.vue';
 import IdentityInfo from '@/components/data_gen/identity-info.vue';
 import CrudCodeGen from '@/components/code/curd_gen/crud-code-gen.vue';
-import ReplaceRow from '@/components/text_process/replace_row/index.vue';
 import ExtensionManage from "@/components/extension/extension-manage.vue";
 import DataBackup from "@/components/app/data-backup.vue";
 import JsonUtils from "@/components/code/json-utils.vue";
 import Todo from "@/components/job/todo/index.vue";
+import Property from '@/components/app/property.vue';
 import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
+
 
 const serverAddress = import.meta.env.VITE_SERVER_ADDRESS || '';
 
@@ -39,6 +40,7 @@ export const useAppStore = defineStore('app', () => {
             {
                 path: idGen.getStringKey(), title: '配置', children: [
                     { path: '/data-backup', title: '数据备份' },
+                    { path: '/property', title: '参数配置' },
                 ]
             },
             {
@@ -72,12 +74,12 @@ export const useAppStore = defineStore('app', () => {
         staticRoutes: [
             { path: '/', view: Home, isComponent: true },
             { path: '/data-backup', view: DataBackup, isComponent: true },
+            { path: '/property', view: Property, isComponent: true },
             { path: '/format-now-time', view: DateTime, isComponent: true },
             { path: '/process', view: Process, isComponent: true },
             { path: '/identity-info', view: IdentityInfo, isComponent: true },
             { path: '/crud-code-gen', view: CrudCodeGen, isComponent: true },
             { path: '/json-utils', view: JsonUtils, isComponent: true },
-            { path: '/replace-each-row', view: ReplaceRow, isComponent: true },
             { path: '/lan-scan', view: LanScan, isComponent: true },
             { path: '/my-net-info', view: MyNetInfo, isComponent: true },
             { path: '/extension-manage', view: ExtensionManage, isComponent: true },

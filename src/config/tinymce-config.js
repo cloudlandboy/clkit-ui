@@ -5,7 +5,7 @@ const DEFAULT_CONFIG = {
     menubar: false,
     plugins: 'preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media code codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount emoticons autosave autoresize',
     toolbar: [
-        'styles fontfamily fontsize alignleft aligncenter alignright alignjustify forecolor backcolor bold italic underline strikethrough link image',
+        'styles fontfamily fontsize alignleft aligncenter alignright alignjustify forecolor backcolor bold italic underline strikethrough link',
         'outdent indent bullist numlist blockquote subscript superscript removeformat table charmap emoticons hr preview',
     ],
     min_height: 320,
@@ -17,8 +17,8 @@ const DEFAULT_CONFIG = {
     ],
     image_list: [],
     importcss_append: true,
+    file_picker_types: 'image media',
     file_picker_callback: function (callback, value, meta) {
-        alert('hhhh');
     },
     autosave_ask_before_unload: false,
 };

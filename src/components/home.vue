@@ -17,7 +17,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAppStore } from "@/stores/app";
-import { getVersion } from "@/api/app";
+import { getVersion } from "@/api/app/app";
 
 const appStore = useAppStore();
 const version = ref('');

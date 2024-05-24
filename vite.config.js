@@ -4,8 +4,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import prismjsPlugin from 'vite-plugin-prismjs'
 import Icons from 'unplugin-icons/vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
@@ -15,6 +15,18 @@ export default defineConfig({
       plugins: ['line-numbers', 'copy-to-clipboard'],
       theme: 'okaidia',
       css: true,
+    }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'node_modules/tinymce',
+          dest: 'lib'
+        },
+        {
+          src: 'node_modules/tinymce-i18n/langs7/*',
+          dest: 'lib/tinymce/langs'
+        }
+      ]
     })
   ],
   resolve: {

@@ -1,5 +1,5 @@
 <template>
-    <el-card class="box-card">
+    <el-card class="clkit-card">
         <template #header>
             <div class="card-header">
                 <span>数据备份</span>
@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { exportData, importData } from "@/api/app";
+import { exportData, importData } from "@/api/app/app";
 import { downloadFile } from "@/util/web-file-utils";
 import { ElNotification } from 'element-plus'
 

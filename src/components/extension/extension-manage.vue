@@ -1,5 +1,5 @@
 <template>
-    <el-card class="box-card" v-loading.fullscreen="installLoading" element-loading-text="安装扩展中...">
+    <el-card class="clkit-card" v-loading.fullscreen="installLoading" element-loading-text="安装扩展中...">
         <template #header>
             <div class="card-header">
                 <span>扩展管理 </span>

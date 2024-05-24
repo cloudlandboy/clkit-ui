@@ -1,4 +1,5 @@
-import axios from "../axios";
+import axios from "@/api/axios";
+import { OS_PROCESS_VIEW } from "@/constants/permission";
 
 
 function url(path) {
@@ -6,13 +7,19 @@ function url(path) {
 }
 
 export function findPid(type, value) {
-    return axios.get(url(`info/${type}/${value}`));
+    return axios.get(url(`info/${type}/${value}`), {
+        preAuthorize: ['hasPermission', OS_PROCESS_VIEW]
+    });
 }
 
 export function killPort(body) {
-    return axios.post(url('kill_port'), body);
+    return axios.post(url('kill_port'), body, {
+        preAuthorize: ['hasPermission', OS_PROCESS_VIEW]
+    });
 }
 
 export function killPid(body) {
-    return axios.post(url('kill_pid'), body);
+    return axios.post(url('kill_pid'), body, {
+        preAuthorize: ['hasPermission', OS_PROCESS_VIEW]
+    });
 }

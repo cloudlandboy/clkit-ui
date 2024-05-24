@@ -1,5 +1,5 @@
 <template>
-    <el-card class="box-card">
+    <el-card class="clkit-card">
         <template #header>
             <div class="card-header">
                 <span>CRUD代码生成 </span>

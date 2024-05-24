@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="authStore.loginDialogVisible" center :align-center="true" :close-on-click-modal="false"
+    <el-dialog v-model="authStore.isInLogin" center :align-center="true" :close-on-click-modal="false"
         :close-on-press-escape="false" width="320px" title="密码登录">
         <el-form :model="loginForm" style="margin: 32px 16px 0 16px;" size="large" @change="clearErrorMessage">
             <el-form-item>
@@ -19,7 +19,7 @@
 <script setup>
 import { ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { loginByUserName } from "@/api/auth";
+import { loginByUserName } from "@/api/app/auth";
 const authStore = useAuthStore();
 const loginForm = ref({
     username: '',
@@ -32,8 +32,12 @@ function clearErrorMessage() {
 }
 function submitLogin() {
     loginByUserName(loginForm.value.username, loginForm.value.password).then(res => {
-        authStore.updateToken(res.data.data);
-        authStore.loginDialogVisible = false;
+        authStore.updateToken(res.data.data, true);
+        //authStore.isInLogin = false;
+        //TODO 直接刷新页面
+        setTimeout(() => {
+            window.location.reload();
+        }, 200);
     }).catch(err => {
         if (err.response) {
             errorMessage.value = err.response.data.msg;

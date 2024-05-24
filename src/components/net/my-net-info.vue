@@ -1,5 +1,5 @@
 <template>
-    <el-card class="box-card" v-show="!loading">
+    <el-card class="clkit-card" v-show="!loading">
         <template #header>
             <div class="card-header">
                 <span>本机网络信息</span>

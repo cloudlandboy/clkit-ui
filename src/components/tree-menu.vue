@@ -2,10 +2,7 @@
     <label v-for="menu in menuList" :key="menu._id" v-show="!menu.hide">
         <el-sub-menu v-if="menu.children" :index="menu.path">
             <template #title>
-                <el-icon size="small" v-show="menuCollapse">
-                    <Fold />
-                </el-icon>
-                <span v-show="!menuCollapse">{{ menu.title }}</span>
+                <span>{{ menu.title }}</span>
             </template>
             <tree-menu :menuList="menu.children" />
         </el-sub-menu>
@@ -14,5 +11,5 @@
 </template>
 
 <script setup>
-const { menuList, menuCollapse } = defineProps(['menuList', 'menuCollapse'])
+const { menuList } = defineProps(['menuList'])
 </script>

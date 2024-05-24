@@ -1,4 +1,5 @@
-import axios from "../axios";
+import axios from "@/api/axios";
+import { GEN_CRUD } from "@/constants/permission";
 
 function url(path) {
     return `/gen/${path || ''}`;
@@ -6,7 +7,8 @@ function url(path) {
 
 export function genCrud(data) {
     return axios.post(url('crud'), data, {
-        responseType: 'blob'
+        responseType: 'blob',
+        preAuthorize: ['hasPermission', GEN_CRUD]
     });
 }
 

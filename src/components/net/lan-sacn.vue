@@ -1,5 +1,5 @@
 <template>
-    <el-card class="box-card" v-loading.fullscreen="loading" element-loading-text="扫描中">
+    <el-card class="clkit-card" v-loading.fullscreen="loading" element-loading-text="扫描中">
         <template #header>
             <div class="card-header">
                 <span>局域网扫描</span>
@@ -42,7 +42,7 @@ import { prefixLocalStore } from "@/util/local-store";
 const localStore = prefixLocalStore('lan');
 
 let ipOptions = ref([]);
-const form = ref(localStore.getJsonOrDefault('form', {
+const form = ref(localStore.getJsonOrDefault('scanForm', {
     baseIp: '',
     minPort: 8080,
     maxPort: 8090
@@ -57,7 +57,7 @@ const activeNames = ref([]);
 
 function actionScanPort() {
     loading.value = true;
-    localStore.set('lan', form.value);
+    localStore.set('scanForm', form.value);
     scanLanPort(form.value).then(res => {
         const ips = res.data.data.filter(item => item.ports.length > 0);
         scanResult.value = ips;

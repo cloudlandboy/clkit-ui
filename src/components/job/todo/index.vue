@@ -1,29 +1,52 @@
 <template>
-    <div class="clkit-todo-create-btn-group">
-        <el-icon @click="createTodo" :size="24" color="#00C5FF">
-            <MaterialSymbolsAssignmentAddSharp />
-        </el-icon>
-    </div>
-    <el-tabs v-model="activeTodo" @tab-change="loadTodo">
-        <el-tab-pane label="今日" name="today"></el-tab-pane>
-        <el-tab-pane label="全部" name="all"></el-tab-pane>
-    </el-tabs>
-    <div class="clkit-custom-scrollbar">
-        <ul v-infinite-scroll="loadTodo" :infinite-scroll-disabled="pageState.isLast" class="clkit-todo-list"
-            style="overflow: auto">
-            <li v-for="todo in todoList" :key="todo.id" class="clkit-todo-list-item">
-                <el-checkbox style="margin-top: 2px;margin-right: 8px;" :checked="todo.status === '1'"
-                    @change="chageDone(todo)" />
-                <span style="width: 220px;" class="clkit-overflow-ellipsis">{{ todo.name }}</span>
-                <span style="margin-left: 16px;" :style="getTimeStyle(todo.status)">
-                    {{ displayTime(todo.deadlineTime) }}
-                </span>
-            </li>
-        </ul>
-    </div>
+    <el-card class="clkit-card">
+        <template #header>
+            <div class="clkit-card-header">
+                <div class="clkit-card-header-title">
+                    <span>{{ todoData.isToday ? '今日待办' : '全部待办' }}</span>
+                    <el-icon class="clkit-todo-switch-btn" :size="24" @click="switchData">
+                        <MaterialSymbolsFlipCameraAndroid />
+                    </el-icon>
+                </div>
+                <div>
+                    <el-button @click="actionCreateTodo">新增</el-button>
+                </div>
+            </div>
+        </template>
+        <div class="clkit-custom-scrollbar">
+            <TransitionGroup name="todo-list" tag="ul" v-infinite-scroll="loadTodo"
+                :infinite-scroll-disabled="pageState.isLast" class="clkit-todo-list" style="overflow: auto">
+                <li v-for="todo in todoData.data" :key="todo.id" class="clkit-todo-list-item">
+                    <el-checkbox style="margin-top: 2px;margin-right: 8px;" :checked="todo.status === '1'"
+                        @change="chageDone(todo)" />
+                    <div class="clikit-display-flex" @click="actionUpdateTodo(todo)">
+                        <span style="width: 220px;" class="clkit-overflow-ellipsis">{{ todo.name }}</span>
+                        <span style="margin-left: 16px;" :style="getTimeStyle(todo.status)">
+                            {{ displayTime(todo.deadlineTime) }}
+                        </span>
+                    </div>
 
+                </li>
+            </TransitionGroup>
+            <!-- <ul v-infinite-scroll="loadTodo" :infinite-scroll-disabled="pageState.isLast" class="clkit-todo-list"
+                style="overflow: auto">
+                <li v-for="todo in todoData.data" :key="todo.id" class="clkit-todo-list-item">
+                    <el-checkbox style="margin-top: 2px;margin-right: 8px;" :checked="todo.status === '1'"
+                        @change="chageDone(todo)" />
+                    <div class="clikit-display-flex" @click="actionUpdateTodo(todo)">
+                        <span style="width: 220px;" class="clkit-overflow-ellipsis">{{ todo.name }}</span>
+                        <span style="margin-left: 16px;" :style="getTimeStyle(todo.status)">
+                            {{ displayTime(todo.deadlineTime) }}
+                        </span>
+                    </div>
+
+                </li>
+            </ul> -->
+        </div>
+    </el-card>
     <!-- add dialog -->
-    <el-dialog v-model="createDialogVisible" title="创建待办" width="50%" :close-on-click-modal="false" :z-index="10">
+    <el-dialog v-model="createDialogVisible" :title="todoForm.id ? '修改待办' : '创建待办'" width="50%"
+        :close-on-click-modal="false" :z-index="10">
         <el-form :model="todoForm" label-width="auto">
             <el-form-item>
                 <el-input v-model="todoForm.name" placeholder="输入标题" class="clkit-none-border-el-input" />
@@ -81,16 +104,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import dayjs from 'dayjs';
-import { faker } from '@faker-js/faker';
-import Editor from '@tinymce/tinymce-vue'
-import MaterialSymbolsEventRepeatOutline from '~icons/material-symbols/event-repeat-outline'
-import MaterialSymbolsAssignmentAddSharp from '~icons/material-symbols/assignment-add-sharp'
-import { ElNotification } from 'element-plus'
+import Editor from '@tinymce/tinymce-vue';
+import MaterialSymbolsEventRepeatOutline from '~icons/material-symbols/event-repeat-outline';
+import MaterialSymbolsFlipCameraAndroid from '~icons/material-symbols/flip-camera-android';
+import { ElNotification } from 'element-plus';
 import { TINYMCE_SCRIPT_SRC } from "@/constants/path-constant";
 import initTinymceConfig from '@/config/tinymce-config';
 import { DICT_JOB_REPEAT_MODE, DICT_JOB_REMINDER } from "@/constants/dict";
-import { getDict } from "@/api/app";
+import { getDict } from "@/api/app/app";
 import * as todoApi from "@/api/job/todo";
+import { NORM_DATE_PATTERN } from '@/constants/common';
+import { ObjectSupplier } from '@/util/object-utils';
 
 const tinymceConfig = initTinymceConfig({ placeholder: '在此处填写备注' });
 const createDialogVisible = ref(false);
@@ -119,53 +143,65 @@ const DICT = {
 
 const pageState = ref({
     page: 0,
-    size: 50,
+    size: 20,
     sort: 'deadlineTime,desc',
     isLast: false,
 });
 
-const activeTodo = ref('today');
-const todoList = ref([])
-const todoForm = ref({
-    name: '',
-    remark: '',
-    repeat: '0',
-    reminder: '0',
-    deadlineTime: null,
+const todoData = ref({
+    isToday: true,
+    data: []
 });
 
-
-
-function loadTodo(active) {
-    if (active) {
-        todoList.value = [];
-        pageState.value.page = 1;
-    } else {
-        active = activeTodo.value;
-        pageState.value.page++;
+const todaSupplier = new ObjectSupplier(() => {
+    return {
+        name: '',
+        remark: '',
+        repeat: '0',
+        reminder: '0',
+        deadlineTime: null,
     }
+})
 
+const todoForm = ref(todaSupplier.getObj());
+
+
+function loadTodo(reload) {
+    if (reload) {
+        pageState.value.page = 0;
+    }
+    pageState.value.page++;
     const query = {
         page: pageState.value.page,
         size: pageState.value.size,
         sort: pageState.value.sort,
     }
 
-    // if (active == 'today') {
-    //     const today = dayjs().format('YYYY/MM/DD');
-    //     query.startDeadlineDate = today;
-    //     query.endDeadlineDate = today;
-    // }
+    if (todoData.value.isToday) {
+        const today = dayjs().format(NORM_DATE_PATTERN);
+        query.startDeadlineDate = today;
+        query.endDeadlineDate = today;
+    }
 
     todoApi.queryPage(query).then(res => {
         pageState.value.isLast = res.data.data.last;
-        const existsIds = todoList.value.map(t => t.id);
+        if (reload) {
+            todoData.value.data = res.data.data.content;
+            return;
+        }
+        const existsIds = todoData.value.data.map(t => t.id);
         res.data.data.content.forEach(td => {
             if (!existsIds.includes(td.id)) {
-                todoList.value.push(td);
+                todoData.value.data.push(td);
             }
         })
     });
+}
+
+
+function switchData() {
+    todoData.value.isToday = !todoData.value.isToday;
+    loadTodo(true);
 }
 
 function getTimeStyle(status) {
@@ -181,27 +217,35 @@ function getTimeStyle(status) {
 }
 
 function chageDone(todo) {
-    if (todo.status === DICT.status.DONE) {
-        //已完成改为未完成或已过期
-    } else {
-        //改为已完成
-    }
+    todoApi.updateStatus(todo.id, todo.status !== DICT.status.DONE.value).then(res => {
+        loadTodo(true);
+    })
 }
 
 function displayTime(normalTimeText) {
     return normalTimeText.substring(0, 16);
 }
 
-function createTodo() {
-    createDialogVisible.value = true;
+function actionCreateTodo() {
+    todoForm.value = todaSupplier.getObj();
+    createDialogVisible.value = true
+}
+
+function actionUpdateTodo(todo) {
+    createDialogVisible.value = true
+    todoForm.value = todo;
 }
 
 function postTodo() {
     todoApi.create(todoForm.value).then(res => {
         ElNotification.success('保存成功');
         createDialogVisible.value = false;
+        todoData.value.data = [];
+        pageState.value.page = 0;
+        loadTodo(true);
     })
 }
+
 onMounted(() => {
     getDict(DICT_JOB_REPEAT_MODE, DICT_JOB_REMINDER).then(res => {
         DICT.reminder = res.data.data[DICT_JOB_REMINDER];
@@ -224,7 +268,7 @@ onMounted(() => {
 }
 
 .clkit-todo-list {
-    height: 500px;
+    height: 520px;
     padding: 0;
     margin: 0;
     list-style: none;
@@ -237,6 +281,8 @@ onMounted(() => {
     justify-content: left;
     height: 42px;
     margin: 10px;
+    line-height: 42px;
+    width: max-content;
     padding: 0 16px;
     border-radius: 6px;
 }
@@ -259,5 +305,27 @@ onMounted(() => {
     height: 9px;
     left: 5px;
     width: 5px;
+}
+
+.clkit-todo-switch-btn {
+    margin-left: 16px;
+    vertical-align: bottom;
+    cursor: pointer;
+}
+
+.clkit-todo-switch-btn:hover {
+    color: var(--clikit-color-amber-yellow);
+}
+
+
+.todo-list-enter-active,
+.todo-list-leave-active {
+    transition: all 0.5s ease;
+}
+
+.todo-list-enter-from,
+.todo-list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
 }
 </style>

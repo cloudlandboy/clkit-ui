@@ -18,6 +18,10 @@ import App from './App.vue';
 import { basicSetup } from 'codemirror';
 import VueCodemirror from 'vue-codemirror';
 import VueDragResize from 'vue-drag-resize/src/components/vue-drag-resize.vue';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration'
+
+dayjs.extend(duration);
 
 const app = createApp(App)
 app.use(createPinia());

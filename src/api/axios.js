@@ -10,26 +10,15 @@ axios.defaults.baseURL += '/api';
 axios.interceptors.response.use(res => {
     return res;
 }, err => {
-    if (err.code === 'ERR_NETWORK') {
-        if (lockState.networkErrorNotify) {
-            return Promise.reject(err);
+    if (axios.isAxiosError(err)) {
+        const handler = getAxiosErrorCodeHandler(err.code);
+        if (handler) {
+            return handler(err);
         }
-        lockState.networkErrorNotify = true;
-        ElNotification({
-            type: 'error',
-            title: '出错了',
-            message: '网络连接失败',
-            onClose: () => {
-                lockState.networkErrorNotify = false;
-            }
-        })
-        return Promise.reject(err);
     }
     if (err.response) {
-        handleApiErrorResponse(err.response)
-        return Promise.reject(err);
+        return handleApiErrorResponse(err)
     }
-
     ElNotification({
         type: 'error',
         title: '出错了',
@@ -38,15 +27,15 @@ axios.interceptors.response.use(res => {
     return Promise.reject(err);
 })
 
-function handleApiErrorResponse(response) {
+function handleApiErrorResponse(err) {
+    const response = err.response;
     //忽略api响应错误拦截
     if (response.config.ignoreApiErrorIntercept) {
-        return
+        return Promise.reject(err);
     }
-    const statusHandler = apiErrorResponseStatusHandler[response.status];
-    if (statusHandler) {
-        statusHandler(response);
-        return;
+    const handler = getApiResponseErrorStatusHandler(response.status);
+    if (handler) {
+        return handler(err);
     }
 
     const data = response.data;
@@ -57,6 +46,7 @@ function handleApiErrorResponse(response) {
     } else {
         notifyApiResponseMsg(data);
     }
+    return Promise.reject(err);
 }
 
 function notifyApiResponseMsg(data) {
@@ -67,19 +57,41 @@ function notifyApiResponseMsg(data) {
     })
 }
 
-/**
- * 接口错误响应状态码处理器
- * response=>{}
- */
-const apiErrorResponseStatusHandler = {
+const ERROR_HANDLER_MAPPING = {
+    apiResponseErrorStatus: {
+    },
+    axiosErrorCode: {
+        "ERR_NETWORK": (err) => {
+            if (lockState.networkErrorNotify) {
+                return Promise.reject(err);
+            }
+            lockState.networkErrorNotify = true;
+            ElNotification({
+                type: 'error',
+                title: '出错了',
+                message: '网络连接失败',
+                onClose: () => {
+                    lockState.networkErrorNotify = false;
+                }
+            })
+            return Promise.reject(err);
+        }
+    }
 }
 
-
-export function getApiErrorResponseStatusHandler(status) {
-    return apiErrorResponseStatusHandler[status];
+export function getAxiosErrorCodeHandler(code) {
+    return ERROR_HANDLER_MAPPING.axiosErrorCode[code];
 }
 
-export function setApiErrorResponseStatusHandler(status, handler) {
-    apiErrorResponseStatusHandler[status] = handler;
+export function setAxiosErrorCodeHandler(code, handler) {
+    return ERROR_HANDLER_MAPPING.axiosErrorCode[code] = handler;
+}
+
+export function getApiResponseErrorStatusHandler(status) {
+    return ERROR_HANDLER_MAPPING.apiResponseErrorStatus[status];
+}
+
+export function setApiResponseErrorStatusHandler(status, handler) {
+    ERROR_HANDLER_MAPPING.apiResponseErrorStatus[status] = handler;
 }
 export default axios;

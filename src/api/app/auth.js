@@ -20,3 +20,15 @@ export function loginByUserName(username, password) {
 export function logout() {
     return axios.post(url('logout'));
 }
+
+
+export function refreshToken(refreshToken) {
+    return axios.post(url('token'), {
+        refreshToken,
+        grant_type: 'refresh_token'
+    }, {
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+    });
+}
