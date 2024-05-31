@@ -1,0 +1,1 @@
+export const USERNAME_RULE = /^[\w-]{5,16}$/;

@@ -12,12 +12,12 @@
                     :extensions="codemirrorExtensions" />
             </el-col>
             <el-col :span="6">
-                <el-button @click="showTree">可视化</el-button>
-                <el-button @click="format">格式化</el-button>
-                <el-button @click="compress">压缩</el-button>
-                <el-button @click="escape">转义</el-button>
-                <el-button @click="unescape">去转义</el-button>
                 <div class="clkit-btn-group">
+                    <el-button @click="showTree">可视化</el-button>
+                    <el-button @click="format">格式化</el-button>
+                    <el-button @click="compress">压缩</el-button>
+                    <el-button @click="escape">转义</el-button>
+                    <el-button @click="unescape">去转义</el-button>
                     <el-button @click="openGenJavaClassDialog">转为JAVA类</el-button>
                 </div>
             </el-col>
@@ -327,10 +327,6 @@ function treeNodeClickHandle(data) {
 </script>
 
 <style scoped>
-.clkit-btn-group {
-    margin-top: 16px
-}
-
 .clkit-json-tree-node-flag {
     width: 28px;
     display: inline-block;
@@ -359,5 +355,14 @@ function treeNodeClickHandle(data) {
     padding-right: 32px;
     background: rgb(230, 227, 227);
     border-radius: 4px;
+}
+
+.clkit-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.clkit-btn-group .el-button{
+    margin-left: 0;
 }
 </style>

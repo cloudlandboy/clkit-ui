@@ -12,6 +12,12 @@ import DataBackup from "@/components/app/data-backup.vue";
 import JsonUtils from "@/components/code/json-utils.vue";
 import Todo from "@/components/job/todo/index.vue";
 import Property from '@/components/app/property.vue';
+import User from '@/components/app/user.vue'
+import Role from '@/components/app/role.vue'
+import Permission from '@/components/app/permission.vue'
+import Regexp from '@/components/code/regexp.vue';
+import UserInfo from '@/components/app/user-info.vue'
+import NotFound from '@/components/not-found.vue'
 import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
 
@@ -32,21 +38,25 @@ export const useAppStore = defineStore('app', () => {
     const idGen = new AutoIncrementKey();
     const config = {
         title: 'Clkit',
-        iconSrc: '/clkit.ico',
+        iconSrc: '/favicon.ico',
         contextPath: '',
         defaultPath: '/',
-        maxIframeCache: 8,
+        maxIframeSize: 8,
         staticMenus: [
             {
-                path: idGen.getStringKey(), title: '配置', children: [
+                path: idGen.getStringKey(), title: '系统', children: [
                     { path: '/data-backup', title: '数据备份' },
                     { path: '/property', title: '参数配置' },
+                    { path: '/user', title: '用户管理' },
+                    { path: '/role', title: '角色管理' },
+                    { path: '/permission', title: '权限查看' },
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '代码', children: [
-                    { path: '/crud-code-gen', title: '增删改查生成' },
+                path: idGen.getStringKey(), title: '开发', children: [
+                    { path: '/crud-code-gen', title: 'CRUD生成' },
                     { path: '/json-utils', title: 'JSON工具' },
+                    { path: '/regexp', title: '正则工具' },
                 ]
             },
             {
@@ -61,29 +71,35 @@ export const useAppStore = defineStore('app', () => {
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '系统', children: [
+                path: idGen.getStringKey(), title: '操作系统', children: [
                     { path: '/process', title: '进程查杀' },
                 ]
             },
             {
-                path: idGen.getStringKey(), title: '假数据', children: [
+                path: idGen.getStringKey(), title: '模拟数据', children: [
                     { path: '/identity-info', title: '身份信息' }
                 ]
             }
         ],
         staticRoutes: [
             { path: '/', view: Home, isComponent: true },
+            { path: '/user-info', view: UserInfo, isComponent: true },
             { path: '/data-backup', view: DataBackup, isComponent: true },
             { path: '/property', view: Property, isComponent: true },
+            { path: '/user', view: User, isComponent: true },
+            { path: '/role', view: Role, isComponent: true },
+            { path: '/permission', view: Permission, isComponent: true },
             { path: '/format-now-time', view: DateTime, isComponent: true },
             { path: '/process', view: Process, isComponent: true },
             { path: '/identity-info', view: IdentityInfo, isComponent: true },
             { path: '/crud-code-gen', view: CrudCodeGen, isComponent: true },
             { path: '/json-utils', view: JsonUtils, isComponent: true },
+            { path: '/regexp', view: Regexp, isComponent: true },
             { path: '/lan-scan', view: LanScan, isComponent: true },
             { path: '/my-net-info', view: MyNetInfo, isComponent: true },
             { path: '/extension-manage', view: ExtensionManage, isComponent: true },
-            { path: '/todo', view: Todo, isComponent: true }
+            { path: '/todo', view: Todo, isComponent: true },
+            { path: '/404', view: NotFound, isComponent: true }
         ]
     }
 
@@ -91,11 +107,13 @@ export const useAppStore = defineStore('app', () => {
         path: idGen.getStringKey(), title: '扩展', children: [{ path: '/extension-manage', title: '扩展管理' }]
     }
 
+    const iframeList = ref([]);
+    const currentRouter = shallowRef({});
     const menuList = ref([].concat(config.staticMenus));
     const routerList = shallowRef([].concat(config.staticRoutes));
 
     function collectExtensionMenu(extension, menuBucket, routerBucket) {
-        const menu = { path: `extension-${extension.id}`, title: extension.name, hide: !!extension.hide };
+        const menu = { path: `/extension-${extension.id}`, title: extension.name, hide: !!extension.hide };
         menuBucket.push(menu);
         if (extension.type === '0') {
             menu.children = [];
@@ -124,5 +142,44 @@ export const useAppStore = defineStore('app', () => {
         routerList.value = [].concat(config.staticRoutes, extensionRouters);
     }
 
-    return { config, menuList, routerList, renderMenu }
+    function findRoute(path) {
+        return routerList.value.find(r => r.path === path);
+    }
+
+    function setCurrentRouter(path) {
+        window.history.replaceState(null, "", config.contextPath + path);
+        const view = findRoute(path) || findRoute('/404');
+        currentRouter.value = view;
+        if (view.isComponent) {
+            return
+        }
+        let toView = iframeList.value.find(frame => frame.router.path === view.path);
+        if (toView) {
+            toView.viewCount++;
+            return;
+        }
+
+        if (iframeList.value.length < config.maxIframeSize) {
+            toView = { index: iframeList.value.length, router: view, ref: null, viewCount: 0 };
+            iframeList.value.push(toView);
+            return
+        }
+
+        //最少使用
+        toView = iframeList.value[0];
+        let maxViewCount = 0;
+        iframeList.value.forEach(frame => {
+            if (frame.viewCount < toView.viewCount) {
+                toView = frame;
+            }
+            if (frame.viewCount > maxViewCount) {
+                maxViewCount = frame.viewCount;
+            }
+        })
+        toView.viewCount = maxViewCount + 1;
+        toView.router = view;
+
+    }
+
+    return { config, menuList, routerList, iframeList, currentRouter, renderMenu, setCurrentRouter }
 })

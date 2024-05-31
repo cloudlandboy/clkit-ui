@@ -2,7 +2,7 @@
     <el-card class="clkit-card">
         <template #header>
             <div class="card-header">
-                <span>CRUD代码生成 </span>
+                <span>增删改查代码生成 </span>
                 <el-button style="float: right;margin-left: 1rem;" @click="openDataSourceManage">数据源管理</el-button>
                 <el-button style="float: right;" @click="openTemplateManage">模板管理</el-button>
                 <el-button style="float: right;" @click="openDbLangTypeManage">类型映射配置</el-button>

@@ -13,9 +13,9 @@
                 </div>
             </div>
         </template>
-        <div class="clkit-custom-scrollbar">
-            <TransitionGroup name="todo-list" tag="ul" v-infinite-scroll="loadTodo"
-                :infinite-scroll-disabled="pageState.isLast" class="clkit-todo-list" style="overflow: auto">
+        <div>
+            <TransitionGroup class="clkit-custom-scrollbar clkit-todo-list" name="todo-list" tag="ul"
+                v-infinite-scroll="loadTodo" :infinite-scroll-disabled="pageState.isLast" style="overflow: auto">
                 <li v-for="todo in todoData.data" :key="todo.id" class="clkit-todo-list-item">
                     <el-checkbox style="margin-top: 2px;margin-right: 8px;" :checked="todo.status === '1'"
                         @change="chageDone(todo)" />
@@ -28,20 +28,6 @@
 
                 </li>
             </TransitionGroup>
-            <!-- <ul v-infinite-scroll="loadTodo" :infinite-scroll-disabled="pageState.isLast" class="clkit-todo-list"
-                style="overflow: auto">
-                <li v-for="todo in todoData.data" :key="todo.id" class="clkit-todo-list-item">
-                    <el-checkbox style="margin-top: 2px;margin-right: 8px;" :checked="todo.status === '1'"
-                        @change="chageDone(todo)" />
-                    <div class="clikit-display-flex" @click="actionUpdateTodo(todo)">
-                        <span style="width: 220px;" class="clkit-overflow-ellipsis">{{ todo.name }}</span>
-                        <span style="margin-left: 16px;" :style="getTimeStyle(todo.status)">
-                            {{ displayTime(todo.deadlineTime) }}
-                        </span>
-                    </div>
-
-                </li>
-            </ul> -->
         </div>
     </el-card>
     <!-- add dialog -->

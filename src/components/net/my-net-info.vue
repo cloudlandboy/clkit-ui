@@ -11,7 +11,7 @@
         </div>
         <div class="clkit-ip-group-item">
             <span>公网ip:</span>
-            <el-tag size="large" :type="info.internetIp ? 'success' : 'error'">{{ info.internetIp || '接口异常' }}</el-tag>
+            <el-tag size="large" :type="info.internetIp ? 'success' : 'danger'">{{ info.internetIp || '接口异常' }}</el-tag>
         </div>
     </el-card>
 </template>

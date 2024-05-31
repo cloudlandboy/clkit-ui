@@ -52,20 +52,17 @@ code {
   text-align: left;
 }
 
-.clkit-custom-scrollbar::-webkit-scrollbar,
-.clkit-custom-scrollbar *::-webkit-scrollbar {
+.clkit-custom-scrollbar::-webkit-scrollbar {
   width: 3px;
   height: 3px;
 }
 
-.clkit-custom-scrollbar::-webkit-scrollbar,
-.clkit-custom-scrollbar *::-webkit-scrollbar-thumb {
+.clkit-custom-scrollbar::-webkit-scrollbar-thumb {
   background: #b3e19d;
   border-radius: 6px;
 }
 
-.clkit-custom-scrollbar::-webkit-scrollbar,
-.clkit-custom-scrollbar *::-webkit-scrollbar-track {
+.clkit-custom-scrollbar::-webkit-scrollbar-track {
   background: #f0f0f0;
   cursor: grab;
 }
@@ -109,4 +106,10 @@ code {
   gap: 16px;
   display: flex;
   justify-content: flex-end;
+}
+
+.clkit-pagination-box {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }

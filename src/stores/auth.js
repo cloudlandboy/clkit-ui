@@ -19,6 +19,7 @@ const ANONYMOUS_USER_INFO = {
     nickname: "匿名",
     realName: "匿名",
     email: "",
+    roleNameList: [],
     permissionList: [],
 }
 
@@ -38,7 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const lockState = {
         unauthorizedHandle: false,
-        loginPromise: Promise.resolve()
+        authInitPromise: Promise.resolve()
     }
 
     const authChecker = {
@@ -63,7 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
     axios.interceptors.request.use(async function (config) {
         if (config.preAuthorize) {
             //正在拉取用户时信息阻塞
-            await lockState.loginPromise;
+            await lockState.authInitPromise;
             console.debug('preAuthorize reuqest: ', config.url);
             const method = authChecker[config.preAuthorize[0]];
             const access = method && method.apply(null, config.preAuthorize.slice(1));
@@ -134,8 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function refreshUserInfo() {
-        //获取权限时阻塞其他需要权限的请求
-        lockState.loginPromise = new Promise((res, rej) => {
+        lockState.authInitPromise = new Promise((resolve) => {
             getInfo().then(res => {
                 res.data.data.isAnonymous = false;
                 authInfo.value.user = res.data.data;
@@ -145,10 +145,10 @@ export const useAuthStore = defineStore('auth', () => {
                     clearAuthInfo();
                 }
             }).finally(() => {
-                res();
+                resolve(authInfo.value.user);
             })
         })
-
+        return lockState.authInitPromise;
     }
 
     /**

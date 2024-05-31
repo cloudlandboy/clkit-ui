@@ -71,7 +71,9 @@ function actionScanPort() {
 onMounted(() => {
     getLanIp().then(res => {
         ipOptions.value = res.data.data;
-        form.value.baseIp = ipOptions.value[0];
+        if (!form.value.baseIp) {
+            form.value.baseIp = ipOptions.value[0];
+        }
     })
 })
 

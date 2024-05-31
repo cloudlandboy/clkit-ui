@@ -23,7 +23,7 @@
             <el-avatar>{{ authStore.authInfo.user.realName[0] }}</el-avatar>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>个人信息</el-dropdown-item>
+                <el-dropdown-item @click="menuSelect('/user-info')">个人信息</el-dropdown-item>
                 <el-dropdown-item @click="authStore.actionLogout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -33,9 +33,9 @@
     </el-header>
     <el-container>
       <!-- 侧边栏 -->
-      <el-aside width="150px" class="clkit-aside" v-show="menuShow">
-        <el-menu ref="menuRef" class="clkit-aside-menu" :default-active="currentRouter.path" @select="menuSelect"
-          :default-openeds="defaultOpeneds" :collapse-transition="false">
+      <el-aside width="150px" class="clkit-aside clkit-custom-scrollbar" v-show="menuShow">
+        <el-menu ref="menuRef" class="clkit-aside-menu" :default-active="appStore.currentRouter.path"
+          @select="menuSelect" :default-openeds="defaultOpeneds" :collapse-transition="false">
           <tree-menu :menuList="appStore.menuList" />
         </el-menu>
       </el-aside>
@@ -43,12 +43,11 @@
       <el-main>
         <div class="route-content">
           <div>
-            <component v-if="currentRouter.isComponent" :is="currentRouter.view" />
+            <component v-if="appStore.currentRouter.isComponent" :is="appStore.currentRouter.view" />
           </div>
-          <div v-for="frame in iframeCache" :key="frame.index">
-            <iframe v-show="currentRouter.path === frame.router.path" :src="frame.router.view" frameborder="0"
-              allowfullscreen="true" @load="iframeLoaded(frame)" :ref="frame.ref"
-              :style="{ width: '99%', height: containerState.height + 'px' }"></iframe>
+          <div v-for="frame in appStore.iframeList" :key="frame.index">
+            <iframe class="clkit-router-content-iframe" v-show="appStore.currentRouter.path === frame.router.path"
+              :src="frame.router.view" frameborder="0" allowfullscreen="true" :ref="frame.ref"></iframe>
           </div>
         </div>
       </el-main>
@@ -61,7 +60,7 @@
 
 <script setup>
 import Clipboard from 'clipboard';
-import { ref, onMounted, onBeforeMount, shallowRef } from 'vue';
+import { ref, onMounted, onBeforeMount } from 'vue';
 import { useAppStore } from "@/stores/app";
 import { useAuthStore } from "@/stores/auth"
 import TreeMenu from "@/components/tree-menu.vue";
@@ -77,79 +76,20 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 const menuRef = ref();
 
-const iframeCache = ref([]);
-
 const defaultOpeneds = [appStore.menuList[0].path];
-const currentRouter = shallowRef({ path: '' });
-const updateLoading = ref(false);
 
 function menuSelect(path) {
-  window.history.replaceState(null, "", appStore.config.contextPath + path);
-  currentRouter.value = findRoute(path);
-  if (currentRouter.value.isComponent) {
-    return
-  }
-
-  let toView = iframeCache.value.find(frame => frame.router.path === currentRouter.value.path);
-  if (toView) {
-    toView.viewCount++;
-    return;
-  }
-
-  if (iframeCache.value.length < appStore.config.maxIframeCache) {
-    toView = { index: iframeCache.value.length, router: currentRouter.value, ref: null, viewCount: 0 };
-    iframeCache.value.push(toView);
-    return
-  }
-
-  //最少使用
-  toView = iframeCache.value[0];
-  let maxViewCount = 0;
-  iframeCache.value.forEach(frame => {
-    if (frame.viewCount < toView.viewCount) {
-      toView = frame;
-    }
-    if (frame.viewCount > maxViewCount) {
-      maxViewCount = frame.viewCount;
-    }
-  })
-  toView.viewCount = maxViewCount + 1;
-  toView.router = currentRouter.value;
-}
-
-function findRoute(path) {
-  return appStore.routerList.find(r => r.path === path);
+  appStore.setCurrentRouter(path);
 }
 
 function toggleShow(value) {
   menuShow.value = value;
 }
 
-function iframeLoaded(frame) {
-  try {
-    const iframeDocument = frame.ref.contentWindow.document;
-    const scriptElement = iframeDocument.createElement('script');
-    scriptElement.text = route.insertScript;
-    scriptElement.id = "clkit-insert-script";
-    iframeDocument.body.appendChild(scriptElement);
-  } catch (err) {
-    //ignore
-  }
-}
-
-
-function openInNewTab() {
-  if (currentRouter.value.isComponent) {
-    return
-  }
-  window.open(currentRouter.value.view, '_blank');
-}
-
 onBeforeMount(() => {
   appStore.renderMenu().finally(() => {
     const path = location.pathname.substring(appStore.config.contextPath.length - 1);
-    const route = findRoute(path);
-    menuSelect(route ? path : appStore.config.defaultPath);
+    appStore.setCurrentRouter(path);
   })
 })
 
@@ -207,7 +147,16 @@ onMounted(() => {
   outline: none;
 }
 
+.clkit-aside {
+  height: var(--clkit-route-content-heigth);
+}
+
 .clkit-aside-menu {
   border-right: none;
+}
+
+.clkit-router-content-iframe {
+  width: 99%;
+  height: var(--clkit-route-content-heigth)
 }
 </style>
