@@ -18,6 +18,7 @@ import Permission from '@/components/app/permission.vue'
 import Regexp from '@/components/code/regexp.vue';
 import UserInfo from '@/components/app/user-info.vue'
 import NotFound from '@/components/not-found.vue'
+import WebsocketTest from '@/components/code/websocket-test.vue'
 import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
 
@@ -57,6 +58,7 @@ export const useAppStore = defineStore('app', () => {
                     { path: '/crud-code-gen', title: 'CRUD生成' },
                     { path: '/json-utils', title: 'JSON工具' },
                     { path: '/regexp', title: '正则工具' },
+                    { path: '/websocket-test', title: 'Websocket测试' },
                 ]
             },
             {
@@ -95,6 +97,7 @@ export const useAppStore = defineStore('app', () => {
             { path: '/crud-code-gen', view: CrudCodeGen, isComponent: true },
             { path: '/json-utils', view: JsonUtils, isComponent: true },
             { path: '/regexp', view: Regexp, isComponent: true },
+            { path: '/websocket-test', view: WebsocketTest, isComponent: true },
             { path: '/lan-scan', view: LanScan, isComponent: true },
             { path: '/my-net-info', view: MyNetInfo, isComponent: true },
             { path: '/extension-manage', view: ExtensionManage, isComponent: true },
