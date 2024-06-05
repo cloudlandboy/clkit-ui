@@ -20,13 +20,14 @@ import VueCodemirror from 'vue-codemirror';
 import VueDragResize from 'vue-drag-resize/src/components/vue-drag-resize.vue';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration'
+import HasPermission from '@/components/auth/has-permission.vue';
 
 dayjs.extend(duration);
 
 const app = createApp(App)
 app.use(createPinia());
 app.use(ElementPlus, { locale: zhLocale })
-app.component('vue-drag-resize', VueDragResize)
+app.component('HasPermission', HasPermission)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }

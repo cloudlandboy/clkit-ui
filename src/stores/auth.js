@@ -224,6 +224,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    function waitForInited() {
+        return lockState.authInitPromise;
+    }
+
     return {
         authInfo,
         isInLogin,
@@ -232,7 +236,8 @@ export const useAuthStore = defineStore('auth', () => {
         actionLogout,
         updateToken,
         clearAuthInfo,
-        refreshUserInfo
+        refreshUserInfo,
+        waitForInited
     }
 })
 

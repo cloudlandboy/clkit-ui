@@ -3,4 +3,5 @@
   --clkit-color-pale-purple: #626aef;
   --clikit-color-amber-yellow: #feba07;
   --clkit-route-content-heigth: calc(100vh - 100px);
+  --clkit-margin: 16px;
 }

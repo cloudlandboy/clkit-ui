@@ -15,7 +15,6 @@
         </div>
         <div class="kit-item">
             <span>{{ formatResult }}</span>
-            <copyButton></copyButton>
         </div>
 
         <el-drawer v-model="formatPlaceholderListVisible" title="支持的格式化占位符列表" direction="rtl">
@@ -162,8 +161,6 @@
 <script setup>
 import { ref } from 'vue';
 import dayjs from 'dayjs'
-import copyButton from '@/components/copy-button.vue';
-
 
 var pattern = 'YYYYMMDDHHmmss';
 

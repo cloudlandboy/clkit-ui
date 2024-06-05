@@ -14,6 +14,16 @@ export const APP_EXPORT = "app_export";
 export const APP_IMPORT = "app_import";
 
 /**
+* 系统-参数-配置
+*/
+export const APP_PROPERTY_CONFIG = "app_property_config";
+
+/**
+* 代码-正则-管理
+*/
+export const CODE_REGEXP_MANAGE = "code_regexp_manage";
+
+/**
 * 扩展-管理
 */
 export const EXTENSION_MANAGE = "extension_manage";

@@ -20,6 +20,8 @@ import UserInfo from '@/components/app/user-info.vue'
 import NotFound from '@/components/not-found.vue'
 import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
+import { getAll as getAllProperty } from '@/api/app/property';
+import localStore from '@/util/local-store';
 
 
 const serverAddress = import.meta.env.VITE_SERVER_ADDRESS || '';
@@ -82,7 +84,7 @@ export const useAppStore = defineStore('app', () => {
             }
         ],
         staticRoutes: [
-            { path: '/', view: Home, isComponent: true },
+            { path: '/home', view: Home, isComponent: true },
             { path: '/user-info', view: UserInfo, isComponent: true },
             { path: '/data-backup', view: DataBackup, isComponent: true },
             { path: '/property', view: Property, isComponent: true },
@@ -100,8 +102,20 @@ export const useAppStore = defineStore('app', () => {
             { path: '/extension-manage', view: ExtensionManage, isComponent: true },
             { path: '/todo', view: Todo, isComponent: true },
             { path: '/404', view: NotFound, isComponent: true }
-        ]
+        ],
+        property: localStore.getJsonOrDefault('config-property', {
+            "CLKIT_HOME_PATH": "/home",
+            "CLKIT_EXTENSION_MODE": "MENU"
+        })
     }
+
+    //缓存配置
+    getAllProperty().then(res => {
+        res.data.data.forEach(item => {
+            config.property[item.propKey] = item.propValue;
+        })
+        localStore.set('config-property', config.property);
+    })
 
     const extensionMenu = {
         path: idGen.getStringKey(), title: '扩展', children: [{ path: '/extension-manage', title: '扩展管理' }]
@@ -137,7 +151,13 @@ export const useAppStore = defineStore('app', () => {
         res.data.data.forEach(extension => {
             collectExtensionMenu(extension, extensionMenuChildren, extensionRouters);
         })
-        extensionMenu.children = extensionMenuChildren;
+
+        if ("MENU" == config.property["CLKIT_EXTENSION_MODE"]) {
+            extensionMenu.children = extensionMenuChildren;
+        } else {
+            extensionMenu.children = [extensionMenuChildren[0]];
+        }
+
         menuList.value = [].concat(config.staticMenus, extensionMenu);
         routerList.value = [].concat(config.staticRoutes, extensionRouters);
     }
@@ -148,6 +168,13 @@ export const useAppStore = defineStore('app', () => {
 
     function setCurrentRouter(path) {
         window.history.replaceState(null, "", config.contextPath + path);
+        if (!path || path == "/") {
+            path = config.property["CLKIT_HOME_PATH"]
+        }
+        if (path == "/") {
+            path = "/home";
+        }
+
         const view = findRoute(path) || findRoute('/404');
         currentRouter.value = view;
         if (view.isComponent) {

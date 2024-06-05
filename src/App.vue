@@ -66,11 +66,6 @@ import { useAuthStore } from "@/stores/auth"
 import TreeMenu from "@/components/tree-menu.vue";
 import Login from "@/components/login.vue";
 
-const containerState = ref({
-  width: window.innerWidth,
-  height: window.innerHeight
-});
-
 const menuShow = ref(true);
 const appStore = useAppStore();
 const authStore = useAuthStore();
@@ -94,18 +89,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  new Clipboard('.copy-btn', {
-    text: function (trigger) {
-      return trigger.previousElementSibling;
-    }
-  });
-
-  window.addEventListener("resize", () => {
-    containerState.value.width = window.innerWidth;
-    containerState.value.height = window.innerHeight
-  });
-
-
+  new Clipboard('.clkit-copy-btn');
 });
 </script>
 

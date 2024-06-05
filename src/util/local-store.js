@@ -1,9 +1,7 @@
 class LocalStore {
     prefix;
-    prefixDot;
     constructor(prefix) {
-        this.prefix = prefix;
-        this.prefixDot = prefix ? prefix + '.' : '';
+        this.prefix = prefix ? `clkit-${prefix}-` : 'clkit-';
     }
 
     getOrDefault(key, defaultValue, convertFunc) {
@@ -51,11 +49,11 @@ class LocalStore {
     }
 
     key(k) {
-        return this.prefixDot + k;
+        return this.prefix + k;
     }
 }
 
-const localStore = new LocalStore('');
+const localStore = new LocalStore(null);
 
 export function prefixLocalStore(prefix) {
     return new LocalStore(prefix);

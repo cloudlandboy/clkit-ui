@@ -1,7 +1,4 @@
 <template>
-  <!-- <el-row justify="end" style="padding: 16px 0;">
-    <el-button type="primary" @click="addProperty">新增</el-button>
-  </el-row> -->
   <el-table :data="properties" border style="width: 100%" @cell-mouse-enter="cellEditableEnable"
     @cell-mouse-leave="cellEditableDisable" :show-overflow-tooltip="true" :row-style="{ height: '48px' }">
     <el-table-column prop="name" label="参数名" width="280">
@@ -26,19 +23,14 @@
         <div v-else>{{ scope.row.propValue }}</div>
       </template>
     </el-table-column>
-    <el-table-column label="操作">
-      <template #default="scope">
-        <el-button v-if="!scope.row.internal" size="small" type="danger" @click="handleDelete(scope.row.id)">
-          删除
-        </el-button>
-      </template>
-    </el-table-column>
+    <el-table-column prop="description" label="说明"></el-table-column>
   </el-table>
 </template>
 
 <script setup>
 import { ref, onBeforeMount } from "vue";
-import { getAll } from "@/api/app/property";
+import { getAll, updateValueById } from "@/api/app/property";
+import { operationSuccessNotify } from "@/util/clkil-utils";
 const properties = ref([]);
 
 function cellEditableEnable(row, cell) {
@@ -50,28 +42,19 @@ function cellEditableDisable(row, cell) {
 }
 
 function handleEditComplete(row) {
-  if (row.id) {
-    //更新
-    return
-  }
-  //新增
-}
-
-function handleDelete(id) {
-}
-
-function addProperty() {
-  properties.value.push({
-    name: "",
-    propKey: "",
-    propValue: "",
-    internal: false,
-    editable: true,
-  });
+  updateValueById(row.id, row.propValue).then(() => {
+    operationSuccessNotify();
+  })
 }
 
 onBeforeMount(() => {
   getAll().then(res => {
+    res.data.data.sort((a, b) => {
+      if (a.editable && b.editable) {
+        return 0;
+      }
+      return a.editable ? -1 : 1;
+    });
     properties.value = res.data.data;
   })
 })

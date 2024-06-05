@@ -11,19 +11,16 @@
                 <li>
                     <span>姓名：</span>
                     <span>{{ info.name }}</span>
-                    <copyButton></copyButton>
                 </li>
                 <li>
                     <span>电话：</span>
                     <span>{{ info.phone }}</span>
-                    <copyButton></copyButton>
                 </li>
                 <li>
                     <span>邮箱：</span>
                     <span>
                         {{ info.email }}
                     </span>
-                    <copyButton></copyButton>
                 </li>
             </ul>
         </div>
@@ -33,7 +30,6 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { Faker, zh_CN } from '@faker-js/faker';
-import copyButton from '@/components/copy-button.vue';
 
 const faker = new Faker({
     locale: [zh_CN],
