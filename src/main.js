@@ -17,7 +17,6 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import App from './App.vue';
 import { basicSetup } from 'codemirror';
 import VueCodemirror from 'vue-codemirror';
-import VueDragResize from 'vue-drag-resize/src/components/vue-drag-resize.vue';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration'
 import HasPermission from '@/components/auth/has-permission.vue';
@@ -42,4 +41,3 @@ app.use(VueCodemirror, {
 })
 
 app.mount('#app');
-

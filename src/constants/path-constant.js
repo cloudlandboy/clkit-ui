@@ -1,1 +1,0 @@
-export const TINYMCE_SCRIPT_SRC = "/lib/tinymce/tinymce.min.js";

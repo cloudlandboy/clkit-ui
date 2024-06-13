@@ -120,12 +120,10 @@ import { ElMessage } from 'element-plus'
 import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
 import Prism from "prismjs";
-import "prismjs/themes/prism-okaidia.css";
 import { genJavaClass } from "@/api/gen/gen";
 import { downloadAxiosResponse } from "@/util/web-file-utils";
-import { prefixLocalStore } from "@/util/local-store";
+import { getLocalStore } from "@/util/local-store";
 
-const localStore = prefixLocalStore('jsonUtils');
 const codemirrorExtensions = [json(), oneDark];
 const jsonCode = ref('');
 const jsonTreeData = ref([]);
@@ -144,13 +142,15 @@ const jsonState = {
 const genJavaClassDialogVisible = ref(false);
 const javaClassPreviewDialogVisible = ref(false);
 const javaClassIncludeList = ['setter', 'getter', 'toString', 'hashcodeAndEquals'];
-const genJavaClassForm = ref(localStore.getJsonOrDefault('genJavaClassForm', {
+const genJavaClassFormStore = getLocalStore('json-utils-genJavaClassForm');
+const genJavaClassForm = ref(genJavaClassFormStore.getJsonOrDefault({
     className: 'Clkit',
     packagePath: 'cn.clboy',
     useLombok: true,
     serializable: true,
     includeList: [].concat(javaClassIncludeList)
 }));
+genJavaClassFormStore.vueWatch(genJavaClassForm);
 const previewJavaCode = ref('');
 const javaClassPreviewRef = ref();
 
@@ -256,7 +256,6 @@ function openGenJavaClassDialog() {
 }
 
 function submitGenJavaClass(forPreview) {
-    localStore.set('genJavaClassForm', genJavaClassForm.value);
     const state = getJsonState();
     const data = Object.assign({}, genJavaClassForm.value, { forPreview, sourceType: 'JSON', sourceCode: JSON.stringify(state.obj) });
     genJavaClass(data).then(res => {
@@ -362,7 +361,8 @@ function treeNodeClickHandle(data) {
     flex-wrap: wrap;
     gap: 16px;
 }
-.clkit-btn-group .el-button{
+
+.clkit-btn-group .el-button {
     margin-left: 0;
 }
 </style>

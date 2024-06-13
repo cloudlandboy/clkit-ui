@@ -32,8 +32,7 @@ function clearErrorMessage() {
 }
 function submitLogin() {
     loginByUserName(loginForm.value.username, loginForm.value.password).then(res => {
-        authStore.updateToken(res.data.data, true);
-        //authStore.isInLogin = false;
+        authStore.tokenLocalStore.store(res.data.data);
         //TODO 直接刷新页面
         setTimeout(() => {
             window.location.reload();

@@ -1,7 +1,6 @@
 import { ref } from "vue";
 import { defineStore } from 'pinia'
-import { default as axios, setApiResponseErrorStatusHandler, setAxiosErrorCodeHandler } from "@/api/axios";
-import localStorage from "@/util/local-store";
+import { getLocalStore } from "@/util/local-store";
 import dayjs from "dayjs";
 import { ElMessageBox } from "element-plus";
 import { getInfo } from "@/api/app/user";
@@ -9,9 +8,11 @@ import { logout, refreshToken } from "@/api/app/auth";
 import { AxiosError } from "axios";
 import { ROLE_ADMIN } from "@/constants/permission";
 import { NORM_DATETIME_PATTERN } from "@/constants/common";
+import { default as axios, setApiResponseErrorStatusHandler, setAxiosErrorCodeHandler } from "@/api/axios";
+import { shardWorker } from "@/stores/worker";
+
 
 const UNAUTHORIZE_ERROR_CODE = "ERR_UNAUTHORIZE";
-const TOKEN_INFO_KEY = "tokenInfo";
 const BEARER_PREFIX = "Bearer "
 const ANONYMOUS_USER_INFO = {
     isAnonymous: true,
@@ -22,7 +23,8 @@ const ANONYMOUS_USER_INFO = {
     roleNameList: [],
     permissionList: [],
 }
-
+const tokenLocalStore = getLocalStore("token");
+const userIdLocalStore = getLocalStore("userId");
 export const useAuthStore = defineStore('auth', () => {
 
     //定时器
@@ -63,8 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     //拦截请求，1.判断权限，无权限不发送请求，2.请求头加上accessToken
     axios.interceptors.request.use(async function (config) {
         if (config.preAuthorize) {
-            //正在拉取用户时信息阻塞
-            await lockState.authInitPromise;
+            await waitForInited();
             console.debug('preAuthorize reuqest: ', config.url);
             const method = authChecker[config.preAuthorize[0]];
             const access = method && method.apply(null, config.preAuthorize.slice(1));
@@ -121,24 +122,36 @@ export const useAuthStore = defineStore('auth', () => {
     //未授权响应拦截处理
     setApiResponseErrorStatusHandler('401', unauthorizeHandler);
 
+    /**
+     * 执行登录
+     */
     function actionLogin() {
         isInLogin.value = true;
     }
 
+    /**
+     * 执行退出登录
+     */
     function actionLogout() {
         logout().then(() => {
             //清除授权信息
             clearAuthInfo();
+            //通知推出,由于页面刷新不需要处理
+            //shardWorker.port.postMessage({ type: "authentication-logout" });
             //刷新页面
             window.location.reload();
         });
     }
 
+    /**
+     * 刷新用户信息 
+     */
     function refreshUserInfo() {
         lockState.authInitPromise = new Promise((resolve) => {
             getInfo().then(res => {
                 res.data.data.isAnonymous = false;
                 authInfo.value.user = res.data.data;
+                userIdLocalStore.store(res.data.data.id);
             }).catch(err => {
                 if (err.response && err.response.status === 401) {
                     //说明token已过期，删除token
@@ -165,19 +178,30 @@ export const useAuthStore = defineStore('auth', () => {
 
     }
 
-    function updateToken(token, byLogin) {
-        localStorage.set(TOKEN_INFO_KEY, token);
-        if (byLogin) {
-            return;
-        }
+    /**
+     * 更新token
+     * @param {object} token 
+     */
+    function updateToken(token) {
         authInfo.value.token = token;
         updateTokenTimer(calculateTokenDuration(token));
-        refreshUserInfo();
+        refreshUserInfo().then(() => {
+            //建立websocket连接
+            const protocol = axios.defaults.baseURL.startsWith("https://") ? "wss" : "ws";
+            const apiPath = axios.defaults.baseURL.substring(axios.defaults.baseURL.indexOf('://'));
+            shardWorker.port.postMessage({
+                type: "authentication-success",
+                websocketUrl: `${protocol}${apiPath}/websocket?accessToken=${token.accessToken}`
+            });
+        });
     }
 
+    /**
+     * 清除授权信息
+     */
     function clearAuthInfo() {
         authInfo.value.token = null;
-        localStorage.remove(TOKEN_INFO_KEY);
+        tokenLocalStore.clear();
         authInfo.value.user = ANONYMOUS_USER_INFO;
     }
 
@@ -195,6 +219,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    /**
+     * 执行刷新token
+     * @param {string} token refreshToken 
+     */
     function actionRefreshToken(token) {
         console.debug('刷新token');
         refreshToken(token).then(res => {
@@ -207,8 +235,15 @@ export const useAuthStore = defineStore('auth', () => {
         })
     }
 
+    /**
+     * 等待初始化完成 
+     */
+    function waitForInited() {
+        return lockState.authInitPromise;
+    }
+
     //最后执行，保证请求在设置拦截器之后执行
-    const storeToken = localStorage.getJsonOrDefault(TOKEN_INFO_KEY, null);
+    const storeToken = tokenLocalStore.getJsonOrDefault(null);
     if (storeToken) {
         console.debug('初始化阶段-加载用户信息');
         const tokenDuration = calculateTokenDuration(storeToken)
@@ -224,20 +259,15 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    function waitForInited() {
-        return lockState.authInitPromise;
-    }
-
     return {
         authInfo,
         isInLogin,
         authChecker,
+        tokenLocalStore,
         actionLogin,
         actionLogout,
-        updateToken,
         clearAuthInfo,
         refreshUserInfo,
         waitForInited
     }
 })
-

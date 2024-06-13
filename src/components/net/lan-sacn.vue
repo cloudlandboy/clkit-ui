@@ -37,16 +37,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { getLanIp, scanLanPort } from '@/api/net/lan';
-import { prefixLocalStore } from "@/util/local-store";
+import { getLocalStore } from "@/util/local-store";
 
-const localStore = prefixLocalStore('lan');
+const localStore = getLocalStore('lan-scanForm');
 
 let ipOptions = ref([]);
-const form = ref(localStore.getJsonOrDefault('scanForm', {
+const form = ref(localStore.getJsonOrDefault({
     baseIp: '',
     minPort: 8080,
     maxPort: 8090
 }));
+localStore.vueWatch(form);
 
 const loading = ref(false);
 const scanResultViewer = ref(false);
@@ -57,7 +58,6 @@ const activeNames = ref([]);
 
 function actionScanPort() {
     loading.value = true;
-    localStore.set('scanForm', form.value);
     scanLanPort(form.value).then(res => {
         const ips = res.data.data.filter(item => item.ports.length > 0);
         scanResult.value = ips;

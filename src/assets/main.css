@@ -39,6 +39,12 @@ code {
   width: 100%;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0;
+}
+
 .clkit-form-right-btn-group>.el-form-item__content {
   justify-content: flex-end;
 }

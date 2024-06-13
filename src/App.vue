@@ -65,10 +65,12 @@ import { useAppStore } from "@/stores/app";
 import { useAuthStore } from "@/stores/auth"
 import TreeMenu from "@/components/tree-menu.vue";
 import Login from "@/components/login.vue";
+import { getLocalStore } from '@/util/local-store';
 
-const menuShow = ref(true);
 const appStore = useAppStore();
 const authStore = useAuthStore();
+
+const menuShow = ref(true);
 const menuRef = ref();
 
 const defaultOpeneds = [appStore.menuList[0].path];
@@ -89,7 +91,18 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  new Clipboard('.clkit-copy-btn');
+  const clipboard = new Clipboard('.clkit-copy-btn');
+  const currentVersion = __CLKIT_VERSION__;
+  const versionLocalStore = getLocalStore("version");
+  const localVersion = versionLocalStore.getOrDefault("");
+
+  if (currentVersion !== localVersion) {
+    //do some
+    console.log("版本已更新");
+    localStorage.clear();
+    versionLocalStore.store(currentVersion);
+  }
+
 });
 </script>
 

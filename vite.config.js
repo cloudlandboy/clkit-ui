@@ -1,5 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 
+import { version } from "./package.json";
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import prismjsPlugin from 'vite-plugin-prismjs'
@@ -11,7 +12,7 @@ export default defineConfig({
     vue(),
     Icons({ compiler: 'vue3', autoInstall: true }),
     prismjsPlugin({
-      languages: ['java'],
+      languages: ['java', 'json'],
       plugins: ['line-numbers', 'copy-to-clipboard'],
       theme: 'okaidia',
       css: true,
@@ -33,5 +34,8 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  define: {
+    __CLKIT_VERSION__: JSON.stringify(version)
   }
 })

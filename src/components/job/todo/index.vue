@@ -94,12 +94,11 @@ import Editor from '@tinymce/tinymce-vue';
 import MaterialSymbolsEventRepeatOutline from '~icons/material-symbols/event-repeat-outline';
 import MaterialSymbolsFlipCameraAndroid from '~icons/material-symbols/flip-camera-android';
 import { ElNotification } from 'element-plus';
-import { TINYMCE_SCRIPT_SRC } from "@/constants/path-constant";
 import initTinymceConfig from '@/config/tinymce-config';
 import { DICT_JOB_REPEAT_MODE, DICT_JOB_REMINDER } from "@/constants/dict";
 import { getDict } from "@/api/app/app";
 import * as todoApi from "@/api/job/todo";
-import { NORM_DATE_PATTERN } from '@/constants/common';
+import { NORM_DATE_PATTERN, TINYMCE_SCRIPT_SRC } from '@/constants/common';
 import { ObjectSupplier } from '@/util/object-utils';
 
 const tinymceConfig = initTinymceConfig({ placeholder: '在此处填写备注' });
@@ -223,7 +222,13 @@ function actionUpdateTodo(todo) {
 }
 
 function postTodo() {
-    todoApi.create(todoForm.value).then(res => {
+    let promise;
+    if (todoForm.value.id) {
+        promise = todoApi.update(todoForm.value.id, todoForm.value);
+    } else {
+        promise = todoApi.create(todoForm.value);
+    }
+    promise.then(res => {
         ElNotification.success('保存成功');
         createDialogVisible.value = false;
         todoData.value.data = [];
@@ -238,6 +243,7 @@ onMounted(() => {
         DICT.repeatMode = res.data.data[DICT_JOB_REPEAT_MODE];
     });
 })
+
 </script>
 
 <style>

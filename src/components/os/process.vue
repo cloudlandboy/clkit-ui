@@ -50,17 +50,19 @@
 
 import { ref } from 'vue';
 import { findPid, killPid } from '@/api/os/process';
-import { prefixLocalStore } from "@/util/local-store";
+import { getLocalStore } from "@/util/local-store";
 import { ElNotification, ElMessage } from 'element-plus'
 
-const localStore = prefixLocalStore('process');
+const localStore = getLocalStore('os-process');
 
-const processForm = ref({
-    port: localStore.getNumberOrDefault('findPort', 8080),
-    name: localStore.getOrDefault('findName', ''),
+const processForm = ref(localStore.getJsonOrDefault({
+    port: 8080,
+    name: '',
     findPid: null,
     killPid: null
-});
+}));
+
+localStore.vueWatch(processForm);
 
 const findPidResult = ref({
     title: '查询结果',
@@ -71,7 +73,6 @@ const findPidResultVisible = ref(false);
 function submitFindPort() {
     const port = processForm.value.port;
     if (port) {
-        localStore.set('findPort', port);
         actionFindPid('port', port, '查询端口没有被占用', '查询端口占用进程');
     }
 }
@@ -79,7 +80,6 @@ function submitFindPort() {
 function submitFindName() {
     processForm.value.name = processForm.value.name.trim();
     if (processForm.value.name.length > 0) {
-        localStore.set('findName', processForm.value.name);
         actionFindPid('name', processForm.value.name, '没有包含查询名称的进程', '包含查询名称的进程');
     }
 }

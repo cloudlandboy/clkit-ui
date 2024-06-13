@@ -99,11 +99,11 @@ import templateManage from "./template-manage.vue";
 import datasourceManage from "./datasource-manage.vue";
 import typeMappingConfig from "./type-mapping-config.vue";
 import { ElMessage } from 'element-plus'
-import { prefixLocalStore } from "@/util/local-store";
+import { getLocalStore } from "@/util/local-store";
 import { hasText } from "@/util/string-utils";
 
-const localStore = prefixLocalStore('crudCodeGen');
-const genForm = ref(localStore.getJsonOrDefault('genForm', {
+const localStore = getLocalStore('crudCodeGenForm');
+const genForm = ref(localStore.getJsonOrDefault({
     keyword: null,
     dataSource: null,
     template: null,
@@ -112,6 +112,7 @@ const genForm = ref(localStore.getJsonOrDefault('genForm', {
     extraParams: {},
     tableNames: []
 }));
+localStore.vueWatch(genForm);
 
 var dbLangTypeList = [];
 const dataSourceList = ref([]);
@@ -133,8 +134,6 @@ function submitGen() {
         ElMessage.error('请选择类型映射');
         return;
     }
-
-    localStore.set('genForm', genForm.value);
 
     genCrud({
         author: genForm.value.author,

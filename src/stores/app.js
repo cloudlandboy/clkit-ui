@@ -22,7 +22,7 @@ import WebsocketTest from '@/components/code/websocket-test.vue'
 import { getTree } from "@/api/extension";
 import { AutoIncrementKey } from "@/util/id-utils";
 import { getAll as getAllProperty } from '@/api/app/property';
-import localStore from '@/util/local-store';
+import { getLocalStore } from '@/util/local-store';
 
 
 const serverAddress = import.meta.env.VITE_SERVER_ADDRESS || '';
@@ -39,6 +39,7 @@ function getServerResourceUrl(path) {
 
 export const useAppStore = defineStore('app', () => {
     const idGen = new AutoIncrementKey();
+    const configPropertyLocalStore = getLocalStore("config-property");
     const config = {
         title: 'Clkit',
         iconSrc: '/favicon.ico',
@@ -60,7 +61,7 @@ export const useAppStore = defineStore('app', () => {
                     { path: '/crud-code-gen', title: 'CRUD生成' },
                     { path: '/json-utils', title: 'JSON工具' },
                     { path: '/regexp', title: '正则工具' },
-                    { path: '/websocket-test', title: 'Websocket测试' },
+                    { path: '/websocket-test', title: 'Websocket' },
                 ]
             },
             {
@@ -106,7 +107,7 @@ export const useAppStore = defineStore('app', () => {
             { path: '/todo', view: Todo, isComponent: true },
             { path: '/404', view: NotFound, isComponent: true }
         ],
-        property: localStore.getJsonOrDefault('config-property', {
+        property: configPropertyLocalStore.getJsonOrDefault({
             "CLKIT_HOME_PATH": "/home",
             "CLKIT_EXTENSION_MODE": "MENU"
         })
@@ -117,7 +118,7 @@ export const useAppStore = defineStore('app', () => {
         res.data.data.forEach(item => {
             config.property[item.propKey] = item.propValue;
         })
-        localStore.set('config-property', config.property);
+        configPropertyLocalStore.store(config.property);
     })
 
     const extensionMenu = {
